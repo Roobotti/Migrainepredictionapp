@@ -138,11 +138,6 @@ Based on the wireframe design available at: [Figma Design](https://www.figma.com
 
 ---
 
-## 📄 License
-
-Developed for Junction Hackathon 2025 — Pfizer x Aava HEAD START Challenge
-
----
 
 ## 🙏 Acknowledgments
 

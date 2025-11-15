@@ -31,6 +31,7 @@ interface HealthMetric {
   icon: React.ReactNode;
   status: "normal" | "warning" | "danger";
   subMetrics?: SubMetric[];
+  trackableKey?: string;
 }
 
 interface MigraineDayData {
@@ -49,6 +50,26 @@ export function RiskLevelPage() {
   const [weeklyMigraineCount, setWeeklyMigraineCount] = useState(0);
   const [avgSleep, setAvgSleep] = useState("5.2h");
   const [avgRisk, setAvgRisk] = useState(62);
+  const [trackableFeatures, setTrackableFeatures] = useState<Record<string, boolean>>({});
+
+  // Load trackable features from settings
+  useEffect(() => {
+    const saved = localStorage.getItem("trackable_features");
+    if (saved) {
+      setTrackableFeatures(JSON.parse(saved));
+    } else {
+      // Default all to true if no settings saved
+      setTrackableFeatures({
+        hydration: true,
+        stress: true,
+        caffeine: true,
+        alcohol: true,
+        screenTime: true,
+        exercise: true,
+        relaxing: true
+      });
+    }
+  }, []);
 
   useEffect(() => {
     // Load migraine data from localStorage (same source as Calendar)
@@ -144,7 +165,8 @@ export function RiskLevelPage() {
       value: "6h 45m",
       riskContribution: 18,
       icon: <Smartphone className="text-teal-600" size={24} />,
-      status: "warning"
+      status: "warning",
+      trackableKey: "screenTime"
     },
     {
       id: "heart",
@@ -160,7 +182,8 @@ export function RiskLevelPage() {
       value: "3 cups",
       riskContribution: 12,
       icon: <Coffee className="text-teal-600" size={24} />,
-      status: "warning"
+      status: "warning",
+      trackableKey: "caffeine"
     },
     {
       id: "hydration",
@@ -168,7 +191,8 @@ export function RiskLevelPage() {
       value: "4 glasses",
       riskContribution: 8,
       icon: <Droplets className="text-teal-600" size={24} />,
-      status: "warning"
+      status: "warning",
+      trackableKey: "hydration"
     },
     {
       id: "steps",
@@ -179,6 +203,14 @@ export function RiskLevelPage() {
       status: "normal"
     }
   ];
+
+  // Filter metrics based on trackable features from settings
+  const filteredMetrics = healthMetrics.filter(metric => {
+    // Always show sleep, weather, and heart rate (non-trackable features)
+    if (!metric.trackableKey) return true;
+    // Show trackable features only if enabled in settings
+    return trackableFeatures[metric.trackableKey] === true;
+  });
 
   return (
     <div className="p-4 space-y-4">
@@ -212,7 +244,7 @@ export function RiskLevelPage() {
       <div>
         <h3 className="text-slate-700 mb-3 px-1">Contributing Factors</h3>
         <div className="space-y-3">
-          {healthMetrics.map((metric) => (
+          {filteredMetrics.map((metric) => (
             <Card key={metric.id} className="p-4 bg-white">
               <div className="flex items-center gap-3 mb-3">
                 {metric.icon}

@@ -364,20 +364,20 @@ export function AnalyticsPage() {
       <Card className="p-4 bg-white">
         {/* Data Overview header removed */}
         
-        <Tabs defaultValue="recap" className="w-full">
+        <Tabs defaultValue="weekly" className="w-full">
           <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="recap">Monthly Recap</TabsTrigger>
             <TabsTrigger value="weekly">Weekly Trends</TabsTrigger>
+            <TabsTrigger value="recap">Monthly Recap</TabsTrigger>
           </TabsList>
-
-          <TabsContent value="recap" className="space-y-4 mt-4">
-            {/* Monthly Recap with month navigation */}
-            <MonthlyRecap />
-          </TabsContent>
 
           <TabsContent value="weekly" className="space-y-4 mt-4">
             {/* Weekly Trigger Factor Trends */}
             <WeeklyTriggerTrends />
+          </TabsContent>
+
+          <TabsContent value="recap" className="space-y-4 mt-4">
+            {/* Monthly Recap with month navigation */}
+            <MonthlyRecap />
           </TabsContent>
         </Tabs>
       </Card>

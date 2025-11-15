@@ -25,7 +25,7 @@ interface AddMigraineReportProps {
 
 interface MigraineReport {
   date: Date;
-  severity: number; // 0 = None, 1-3 = Mild, 4-6 = Moderate, 7-10 = Severe
+  severity: "none" | "mild" | "moderate" | "severe"; // Changed to string literals
   symptoms: {
     aura: boolean;
     vomiting: boolean;
@@ -101,7 +101,7 @@ export function AddMigraineReport({ onClose, initialDate, isEstimated = false, e
   }, [dates, initialDate]);
 
   const [selectedDateIndex, setSelectedDateIndex] = useState(initialIndex);
-  const [severity, setSeverity] = useState<number>(editingData?.severity || 5);
+  const [severity, setSeverity] = useState<"none" | "mild" | "moderate" | "severe">(editingData?.severity || "mild");
   const [symptoms, setSymptoms] = useState(editingData?.symptoms || {
     aura: false,
     vomiting: false,
@@ -202,17 +202,23 @@ export function AddMigraineReport({ onClose, initialDate, isEstimated = false, e
     existingReports.push(report);
     localStorage.setItem("migraine_reports", JSON.stringify(existingReports));
 
+    // Dispatch custom event to notify calendar to refresh
+    window.dispatchEvent(new Event('migrainereport:added'));
+
     if (editingData) {
       toast.success(`Migraine report updated for ${formatDate(selectedDate)}`);
     } else if (isEstimated) {
       toast.success(`Migraine confirmed for ${formatDate(selectedDate)}`);
     } else {
-      toast.success(`Migraine report saved for ${formatDate(selectedDate)}`);
+      const message = severity === "none" 
+        ? `Migraine-free day recorded for ${formatDate(selectedDate)}`
+        : `Migraine report saved for ${formatDate(selectedDate)}`;
+      toast.success(message);
     }
     onClose();
   };
 
-  const canSave = markedAsFalse || severity > 0; // Can save if marked as false OR after selecting severity
+  const canSave = markedAsFalse || true; // Can always save after selecting severity
 
   // Check if any additional features are enabled
   const hasAdditionalFeatures = 
@@ -319,35 +325,76 @@ export function AddMigraineReport({ onClose, initialDate, isEstimated = false, e
           </Card>
         )}
 
-        {/* Severity Slider - Hidden if marked as false */}
+        {/* Severity Selection with Buttons - Hidden if marked as false */}
         {!markedAsFalse && (
-          <Card className="p-3 bg-slate-50">
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label className="text-slate-700">Severity</Label>
-                <span className={`${getSeverityColor(severity)}`}>
-                  {getSeverityLabel(severity)}
-                </span>
-              </div>
-              <Slider
-                value={[severity]}
-                onValueChange={(value) => setSeverity(value[0])}
-                min={1}
-                max={10}
-                step={1}
-                className="w-full"
-              />
-              <div className="flex justify-between items-center text-xs text-slate-500 px-1">
-                <span className="text-center">Mild</span>
-                <span className="text-center">Moderate</span>
-                <span className="text-center">Severe</span>
-              </div>
+          <div>
+            <Label className="text-slate-700 mb-3 block">How did you feel?</Label>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => setSeverity("none")}
+                className={`p-4 rounded-xl border-2 transition-all text-left ${
+                  severity === "none"
+                    ? "border-green-500 bg-green-50"
+                    : "border-slate-200 bg-white hover:border-slate-300"
+                }`}
+              >
+                <div className={`mb-1 ${severity === "none" ? "text-green-700" : "text-slate-700"}`}>
+                  No Migraine
+                </div>
+                <div className="text-xs text-slate-500">Migraine-free day</div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setSeverity("mild")}
+                className={`p-4 rounded-xl border-2 transition-all text-left ${
+                  severity === "mild"
+                    ? "border-yellow-500 bg-yellow-50"
+                    : "border-slate-200 bg-white hover:border-slate-300"
+                }`}
+              >
+                <div className={`mb-1 ${severity === "mild" ? "text-yellow-700" : "text-slate-700"}`}>
+                  Mild
+                </div>
+                <div className="text-xs text-slate-500">Noticeable but manageable</div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setSeverity("moderate")}
+                className={`p-4 rounded-xl border-2 transition-all text-left ${
+                  severity === "moderate"
+                    ? "border-orange-500 bg-orange-50"
+                    : "border-slate-200 bg-white hover:border-slate-300"
+                }`}
+              >
+                <div className={`mb-1 ${severity === "moderate" ? "text-orange-700" : "text-slate-700"}`}>
+                  Moderate
+                </div>
+                <div className="text-xs text-slate-500">Disruptive to daily life</div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setSeverity("severe")}
+                className={`p-4 rounded-xl border-2 transition-all text-left ${
+                  severity === "severe"
+                    ? "border-red-500 bg-red-50"
+                    : "border-slate-200 bg-white hover:border-slate-300"
+                }`}
+              >
+                <div className={`mb-1 ${severity === "severe" ? "text-red-700" : "text-slate-700"}`}>
+                  Severe
+                </div>
+                <div className="text-xs text-slate-500">Debilitating pain</div>
+              </button>
             </div>
-          </Card>
+          </div>
         )}
 
-        {/* Symptoms - Only shown if not marked as false */}
-        {!markedAsFalse && (
+        {/* Symptoms - Only shown if not marked as false and severity is not "none" */}
+        {!markedAsFalse && severity !== "none" && (
           <div>
             <Label className="text-slate-700 mb-3 block">Symptoms (Optional)</Label>
             <div className="space-y-3">

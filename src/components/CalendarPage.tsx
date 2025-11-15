@@ -27,19 +27,27 @@ import { toast } from "sonner@2.0.3";
 interface DayData {
   date: Date;
   hasMigraine: boolean;
-  severity?: "mild" | "moderate" | "severe";
+  severity?: "none" | "mild" | "moderate" | "severe";
   heartRate?: string;
   steps?: string;
   weather?: string;
   screenTime?: string;
   sleep?: string;
   riskLevel?: number;
+  hasHealthMetrics?: boolean; // Track if "none" day has health metrics
 }
 
 interface MigraineDayData {
   month: number; // 0-11 (9 = October, 10 = November)
   day: number;
-  severity: "severe" | "moderate" | "mild";
+  severity: "none" | "severe" | "moderate" | "mild";
+  hydration?: number | null;
+  stress?: number;
+  caffeine?: number | null;
+  alcohol?: number | null;
+  screenTime?: number | null;
+  exercise?: number | null;
+  relaxing?: number | null;
 }
 
 // All migraine data to populate (sorted by date)
@@ -74,26 +82,112 @@ export function CalendarPage({ onAddMigraineForDate, onEditMigraine }: CalendarP
   const [migraineDays, setMigraineDays] = useState<DayData[]>([]);
   const [isPopulating, setIsPopulating] = useState(false);
   const [currentScanningDate, setCurrentScanningDate] = useState<Date | null>(null);
-  const [displayMonth, setDisplayMonth] = useState<Date>(new Date(2025, 9, 1)); // October 2025
+  const today = new Date();
+  today.setHours(0, 0, 0, 0); // Normalize to start of day
+  const [displayMonth, setDisplayMonth] = useState<Date>(new Date(today.getFullYear(), today.getMonth(), 1));
   const [populationIndex, setPopulationIndex] = useState(0);
+  const [refreshKey, setRefreshKey] = useState(0);
 
-  // Load existing data or start population on first view
-  useEffect(() => {
+  // Function to load all migraine data
+  const loadMigraineData = () => {
     const savedData = localStorage.getItem("migraine_calendar_data");
     const hasPopulated = localStorage.getItem("data_populated");
     
     if (savedData && hasPopulated === "true") {
-      // Data already exists, load it
+      // Data already exists, load it and show current month
       const parsedData = JSON.parse(savedData) as MigraineDayData[];
-      setMigraineDays(convertToCalendarData(parsedData));
+      const calendarData = convertToCalendarData(parsedData);
+      
+      // Set display month to current month (not October)
+      setDisplayMonth(new Date(today.getFullYear(), today.getMonth(), 1));
+      
+      // Also load reports from AddMigraineReport (includes "none" entries)
+      const reports = localStorage.getItem("migraine_reports");
+      if (reports) {
+        const parsedReports = JSON.parse(reports);
+        const reportDays = parsedReports.map((report: any) => {
+          // Check if any health metrics are entered (including stress which defaults to 5)
+          const hasMetrics = report.hydration !== null || report.caffeine !== null || 
+                           report.alcohol !== null || report.exercise !== null || 
+                           report.relaxing !== null || (report.stress !== null && report.stress !== 5);
+          return {
+            date: new Date(report.date),
+            hasMigraine: report.severity !== "none",
+            severity: report.severity,
+            hasHealthMetrics: hasMetrics,
+            // Add sample data for display
+            heartRate: "78 bpm",
+            steps: "4,500",
+            weather: "Normal: 1013 hPa",
+            screenTime: "5h 20m",
+            sleep: "7h 15m",
+            riskLevel: 45
+          };
+        });
+        
+        // Merge with existing calendar data, avoiding duplicates
+        const allDays = [...calendarData];
+        reportDays.forEach((reportDay: DayData) => {
+          const existingIndex = allDays.findIndex(
+            d => d.date.toDateString() === reportDay.date.toDateString()
+          );
+          if (existingIndex >= 0) {
+            // Update existing entry
+            allDays[existingIndex] = reportDay;
+          } else {
+            // Add new entry
+            allDays.push(reportDay);
+          }
+        });
+        
+        setMigraineDays(allDays);
+      } else {
+        setMigraineDays(calendarData);
+      }
     } else {
-      // First time viewing, start population animation
+      // First time viewing, start population animation showing October 2025
       setIsPopulating(true);
+      setDisplayMonth(new Date(2025, 9, 1)); // Show October 2025 during initialization
       // Start from October 1, 2025
       setTimeout(() => {
         setCurrentScanningDate(new Date(2025, 9, 1));
       }, 100);
     }
+  };
+
+  // Load existing data or start population on first view
+  useEffect(() => {
+    loadMigraineData();
+  }, [refreshKey]);
+
+  // Reload data when component becomes visible (user switches to calendar tab)
+  useEffect(() => {
+    const handleFocus = () => {
+      // Reload data when window/tab regains focus
+      setRefreshKey(prev => prev + 1);
+    };
+
+    const handleStorageChange = (e: StorageEvent) => {
+      // Reload data when migraine_reports changes
+      if (e.key === "migraine_reports") {
+        setRefreshKey(prev => prev + 1);
+      }
+    };
+
+    // Custom event for when add report sheet closes
+    const handleReportAdded = () => {
+      setRefreshKey(prev => prev + 1);
+    };
+
+    window.addEventListener('focus', handleFocus);
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('migrainereport:added', handleReportAdded);
+    
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('migrainereport:added', handleReportAdded);
+    };
   }, []);
 
   // Handle scanning animation - go through each day
@@ -169,8 +263,6 @@ export function CalendarPage({ onAddMigraineForDate, onEditMigraine }: CalendarP
     const lastAdded = migraineDays[migraineDays.length - 1];
     return lastAdded.date.toDateString() === date.toDateString();
   };
-
-  const today = new Date();
   
   // Check if the current scanning date is a migraine day
   const isScanningMigraineDay = currentScanningDate && migraineDays.some(
@@ -186,6 +278,9 @@ export function CalendarPage({ onAddMigraineForDate, onEditMigraine }: CalendarP
       .map(d => d.date),
     mild: migraineDays
       .filter(d => d.severity === "mild")
+      .map(d => d.date),
+    noneWithMetrics: migraineDays
+      .filter(d => d.severity === "none" && d.hasHealthMetrics)
       .map(d => d.date),
     // Only show scanning indicator if it's NOT a migraine day
     scanning: currentScanningDate && !isScanningMigraineDay ? [currentScanningDate] : [],
@@ -206,6 +301,11 @@ export function CalendarPage({ onAddMigraineForDate, onEditMigraine }: CalendarP
       backgroundColor: "#fbbf24",
       color: "white",
       borderRadius: "50%"
+    },
+    noneWithMetrics: {
+      backgroundColor: "#e2e8f0",
+      color: "#475569",
+      borderRadius: "6px"
     },
     scanning: {
       backgroundColor: "#e2e8f0",
@@ -277,8 +377,9 @@ export function CalendarPage({ onAddMigraineForDate, onEditMigraine }: CalendarP
       const dayData = migraineDays.find(
         day => day.date.toDateString() === date.toDateString()
       );
-      if (dayData?.hasMigraine) {
-        // Show details dialog for migraine days
+      
+      // Show details for migraine days OR "none" days with health metrics
+      if (dayData && (dayData.hasMigraine || (dayData.severity === "none" && dayData.hasHealthMetrics))) {
         setShowDetails(true);
       } else {
         // No migraine on this day - open add migraine report with this date
@@ -297,9 +398,8 @@ export function CalendarPage({ onAddMigraineForDate, onEditMigraine }: CalendarP
   const daysInMonth = new Date(displayMonth.getFullYear(), displayMonth.getMonth() + 1, 0).getDate();
   
   // Calculate migraine-free days (only count days that have passed up to scanning date or today)
-  const todayDate = new Date();
-  const isCurrentMonth = displayMonth.getMonth() === todayDate.getMonth() && displayMonth.getFullYear() === todayDate.getFullYear();
-  const isFutureMonth = displayMonth > todayDate;
+  const isCurrentMonth = displayMonth.getMonth() === today.getMonth() && displayMonth.getFullYear() === today.getFullYear();
+  const isFutureMonth = displayMonth > today;
   
   let daysPassed: number;
   if (isPopulating && currentScanningDate) {
@@ -313,7 +413,7 @@ export function CalendarPage({ onAddMigraineForDate, onEditMigraine }: CalendarP
     }
   } else {
     // After animation or if data loaded
-    daysPassed = isFutureMonth ? 0 : (isCurrentMonth ? todayDate.getDate() : daysInMonth);
+    daysPassed = isFutureMonth ? 0 : (isCurrentMonth ? today.getDate() : daysInMonth);
   }
   
   const migraineFreeCount = daysPassed - currentMonthData.length;

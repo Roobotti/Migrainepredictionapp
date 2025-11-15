@@ -40,7 +40,7 @@ export default function App() {
   }, []);
 
   const [appState, setAppState] = useState<AppState>("first-screen-saver");
-  const [activeTab, setActiveTab] = useState("calendar");
+  const [activeTab, setActiveTab] = useState("risk");
   const [screenSaverOpen, setScreenSaverOpen] = useState(false);
   const [triggerWeights, setTriggerWeights] = useState<Record<string, number>>({});
   const [addReportOpen, setAddReportOpen] = useState(false);
@@ -76,6 +76,8 @@ export default function App() {
     localStorage.setItem("trackable_features", JSON.stringify(trackableFeatures));
     localStorage.setItem("onboarding_completed", "true");
     setAppState("main");
+    // Set calendar as active tab after onboarding to help users populate data
+    setActiveTab("calendar");
   };
 
   const handleNotificationTap = () => {
@@ -93,6 +95,10 @@ export default function App() {
     setAddReportDate(undefined);
     setAddReportIsEstimated(false);
     setEditingMigraineData(undefined);
+    // Force calendar to refresh by updating a key
+    if (activeTab === "calendar") {
+      setActiveTab("calendar"); // Trigger re-render
+    }
   };
 
   const handleEditMigraine = (date: Date, data: any) => {
@@ -221,7 +227,7 @@ export default function App() {
 
       {/* Add Migraine Report Sheet */}
       <Sheet open={addReportOpen} onOpenChange={setAddReportOpen}>
-        <SheetContent side="bottom" className="h-[90vh] rounded-t-3xl" aria-describedby="add-migraine-description">
+        <SheetContent side="bottom" className="h-[90vh] rounded-t-3xl">
           <AddMigraineReport 
             onClose={handleAddReportClose} 
             initialDate={addReportDate} 

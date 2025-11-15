@@ -55,9 +55,11 @@ function DialogContent({
 }: React.ComponentProps<typeof DialogPrimitive.Content>) {
   const ariaDescribedby = props["aria-describedby"];
   
-  // Create a clean props object without aria-describedby if it's undefined
-  const { "aria-describedby": _, ...restProps } = props;
-  const contentProps = ariaDescribedby ? { "aria-describedby": ariaDescribedby, ...restProps } : restProps;
+  // Only include aria-describedby if it's explicitly provided and not undefined
+  const contentProps = { ...props };
+  if (!ariaDescribedby) {
+    delete contentProps["aria-describedby"];
+  }
   
   return (
     <>

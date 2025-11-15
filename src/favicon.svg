@@ -1,6 +1,15 @@
-<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+<svg width="32" height="32" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
   <!-- Lightning Strike M -->
-  <path d="M6 4 L11 4 L16 16 L21 4 L26 4 L26 28 L21 28 L21 12 L16 24 L11 12 L11 28 L6 28 Z" fill="#14b8a6"/>
+  <path
+    d="M30 20 L45 20 L60 60 L75 20 L90 20 L90 100 L75 100 L75 50 L60 90 L60 90 L45 50 L45 100 L30 100 Z"
+    fill="#14b8a6"
+    stroke="#14b8a6"
+    stroke-width="2"
+  />
   <!-- Lightning bolt accent -->
-  <path d="M14 9 L18 13 L16.5 13 L19 18 L15 14 L16.5 14 Z" fill="#ffffff" opacity="0.9"/>
+  <path
+    d="M55 35 L65 50 L60 50 L68 70 L58 55 L63 55 Z"
+    fill="#fff"
+    opacity="0.9"
+  />
 </svg>

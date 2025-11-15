@@ -1,5 +1,12 @@
 # Migraine Prediction App
 
+### Live Demo
+Try the app instantly using pre-loaded sample data!
+A hosted version will be available throughout the hackathon.
+Available at: [DEMO](https://patio-dragon-01428482.figma.site)
+
+---
+
 > **Pfizer x Aava HEAD START Challenge** • Junction Hackathon 2025
 
 An intelligent, data-driven mobile application designed to predict and prevent migraine episodes through personalized risk analysis, continuous learning, and comprehensive user insights.
@@ -131,12 +138,6 @@ npm i
 # Start development server
 npm run dev
 ```
-
-### Original Design
-
-Based on the wireframe design available at: [Figma Design](https://www.figma.com/design/1vuBP2aUMT2DUmhMaLGbCc/Migraine-Prediction-App-Wireframe)
-
----
 
 
 ## 🙏 Acknowledgments

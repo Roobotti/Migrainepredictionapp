@@ -8,7 +8,6 @@ import {
   Bell, 
   BellOff, 
   Droplets, 
-  Coffee, 
   AlertTriangle,
   Clock,
   Settings as SettingsIcon,
@@ -20,7 +19,13 @@ import {
   Link2,
   CheckCircle2,
   Circle,
-  Sparkles
+  Sparkles,
+  Brain,
+  Coffee,
+  Wine,
+  Smartphone,
+  Dumbbell,
+  Sun
 } from "lucide-react";
 import {
   Select,
@@ -38,15 +43,26 @@ interface NotificationSettings {
     riskThreshold: number;
     checkTimes: string[];
   };
-  waterIntake: {
-    enabled: boolean;
-    times: string[];
-    intervalHours: number;
-  };
-  caffeineIntake: {
-    enabled: boolean;
-    times: string[];
-  };
+}
+
+interface TrackableFeatures {
+  hydration: boolean;
+  stress: boolean;
+  caffeine: boolean;
+  alcohol: boolean;
+  screenTime: boolean;
+  exercise: boolean;
+  relaxing: boolean;
+}
+
+interface TrackableFeatureReminders {
+  hydration: string[];
+  stress: string[];
+  caffeine: string[];
+  alcohol: string[];
+  screenTime: string[];
+  exercise: string[];
+  relaxing: string[];
 }
 
 interface ConnectedApp {
@@ -65,16 +81,27 @@ export function SettingsPage() {
       enabled: true,
       riskThreshold: 65,
       checkTimes: ["12:00", "18:00", "21:00"]
-    },
-    waterIntake: {
-      enabled: true,
-      times: ["09:00", "12:00", "15:00", "18:00", "21:00"],
-      intervalHours: 3
-    },
-    caffeineIntake: {
-      enabled: true,
-      times: ["14:00", "20:00"]
     }
+  });
+
+  const [trackableFeatures, setTrackableFeatures] = useState<TrackableFeatures>({
+    hydration: true,
+    stress: true,
+    caffeine: true,
+    alcohol: true,
+    screenTime: true,
+    exercise: true,
+    relaxing: true
+  });
+
+  const [featureReminders, setFeatureReminders] = useState<TrackableFeatureReminders>({
+    hydration: ["09:00", "12:00", "15:00"],
+    stress: ["12:00", "18:00"],
+    caffeine: ["09:00", "14:00"],
+    alcohol: ["18:00"],
+    screenTime: ["21:00"],
+    exercise: ["17:00"],
+    relaxing: ["20:00"]
   });
 
   const [hasChanges, setHasChanges] = useState(false);
@@ -337,92 +364,113 @@ export function SettingsPage() {
     setHasChanges(true);
   };
 
-  const updateWaterEnabled = (enabled: boolean) => {
-    setSettings(prev => ({
-      ...prev,
-      waterIntake: { ...prev.waterIntake, enabled }
-    }));
-    setHasChanges(true);
-  };
-
-  const updateWaterTime = (index: number, time: string) => {
-    setSettings(prev => {
-      const newTimes = [...prev.waterIntake.times];
+  // Feature reminder functions
+  const updateFeatureReminderTime = (feature: keyof TrackableFeatureReminders, index: number, time: string) => {
+    setFeatureReminders(prev => {
+      const newTimes = [...prev[feature]];
       newTimes[index] = time;
       return {
         ...prev,
-        waterIntake: { ...prev.waterIntake, times: newTimes }
+        [feature]: newTimes
       };
     });
     setHasChanges(true);
   };
 
-  const addWaterTime = () => {
-    setSettings(prev => ({
+  const addFeatureReminderTime = (feature: keyof TrackableFeatureReminders) => {
+    setFeatureReminders(prev => ({
       ...prev,
-      waterIntake: {
-        ...prev.waterIntake,
-        times: [...prev.waterIntake.times, "12:00"]
-      }
+      [feature]: [...prev[feature], "12:00"]
     }));
     setHasChanges(true);
   };
 
-  const removeWaterTime = (index: number) => {
-    setSettings(prev => ({
+  const removeFeatureReminderTime = (feature: keyof TrackableFeatureReminders, index: number) => {
+    setFeatureReminders(prev => ({
       ...prev,
-      waterIntake: {
-        ...prev.waterIntake,
-        times: prev.waterIntake.times.filter((_, i) => i !== index)
-      }
+      [feature]: prev[feature].filter((_, i) => i !== index)
     }));
     setHasChanges(true);
   };
 
-  const updateCaffeineEnabled = (enabled: boolean) => {
-    setSettings(prev => ({
-      ...prev,
-      caffeineIntake: { ...prev.caffeineIntake, enabled }
-    }));
-    setHasChanges(true);
-  };
+  const renderFeatureCard = (
+    featureKey: keyof TrackableFeatures,
+    icon: React.ReactNode,
+    label: string,
+    description: string
+  ) => {
+    const isEnabled = trackableFeatures[featureKey];
+    const reminders = featureReminders[featureKey as keyof TrackableFeatureReminders];
 
-  const updateCaffeineTime = (index: number, time: string) => {
-    setSettings(prev => {
-      const newTimes = [...prev.caffeineIntake.times];
-      newTimes[index] = time;
-      return {
-        ...prev,
-        caffeineIntake: { ...prev.caffeineIntake, times: newTimes }
-      };
-    });
-    setHasChanges(true);
-  };
+    return (
+      <div className="border border-slate-200 rounded-lg">
+        <div className="flex items-center justify-between p-3">
+          <div className="flex items-center gap-3">
+            {icon}
+            <div>
+              <Label className="text-slate-800">{label}</Label>
+              <p className="text-xs text-slate-500">{description}</p>
+            </div>
+          </div>
+          <Switch
+            checked={isEnabled}
+            onCheckedChange={(val) => {
+              setTrackableFeatures(prev => ({ ...prev, [featureKey]: val }));
+              setHasChanges(true);
+              localStorage.setItem("trackable_features", JSON.stringify({ ...trackableFeatures, [featureKey]: val }));
+            }}
+          />
+        </div>
 
-  const addCaffeineTime = () => {
-    setSettings(prev => ({
-      ...prev,
-      caffeineIntake: {
-        ...prev.caffeineIntake,
-        times: [...prev.caffeineIntake.times, "12:00"]
-      }
-    }));
-    setHasChanges(true);
-  };
-
-  const removeCaffeineTime = (index: number) => {
-    setSettings(prev => ({
-      ...prev,
-      caffeineIntake: {
-        ...prev.caffeineIntake,
-        times: prev.caffeineIntake.times.filter((_, i) => i !== index)
-      }
-    }));
-    setHasChanges(true);
+        {isEnabled && (
+          <div className="px-3 pb-3 pt-2 border-t border-slate-200">
+            <Label className="text-slate-700 text-xs mb-2 block">Reminder Times</Label>
+            <div className="space-y-2">
+              {reminders.map((time, index) => (
+                <div key={index} className="flex items-center gap-2">
+                  <Clock className="text-slate-400" size={14} />
+                  <Select 
+                    value={time} 
+                    onValueChange={(val) => updateFeatureReminderTime(featureKey as keyof TrackableFeatureReminders, index, val)}
+                  >
+                    <SelectTrigger className="flex-1 h-8 text-sm">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {timeOptions.map(t => (
+                        <SelectItem key={t} value={t}>{t}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {reminders.length > 1 && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => removeFeatureReminderTime(featureKey as keyof TrackableFeatureReminders, index)}
+                      className="text-red-500 hover:text-red-600 hover:bg-red-50 h-8 text-xs px-2"
+                    >
+                      Remove
+                    </Button>
+                  )}
+                </div>
+              ))}
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => addFeatureReminderTime(featureKey as keyof TrackableFeatureReminders)}
+              className="mt-2 w-full h-8 text-xs"
+            >
+              + Add Reminder
+            </Button>
+          </div>
+        )}
+      </div>
+    );
   };
 
   return (
-    <div className="p-4 space-y-4 pb-24">
+    <div className="space-y-4 pb-24">
 
       {/* Smart Migraine Notifications */}
       <Card className="p-4 bg-white">
@@ -533,141 +581,70 @@ export function SettingsPage() {
         )}
       </Card>
 
-      {/* Water Intake Reminders */}
+      {/* Trackable Features */}
       <Card className="p-4 bg-white">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-cyan-100 rounded-lg">
-              <Droplets className="text-cyan-600" size={20} />
-            </div>
-            <div>
-              <Label htmlFor="water-intake" className="text-slate-800">
-                Water Intake Reminders
-              </Label>
-              <p className="text-xs text-slate-500 mt-1">
-                Stay hydrated throughout the day
-              </p>
-            </div>
+        <div className="flex items-center gap-3 mb-4">
+          <div className="p-2 bg-teal-100 rounded-lg">
+            <SettingsIcon className="text-teal-600" size={20} />
           </div>
-          <Switch
-            id="water-intake"
-            checked={settings.waterIntake.enabled}
-            onCheckedChange={updateWaterEnabled}
-          />
+          <div>
+            <Label className="text-slate-800">Trackable Features</Label>
+            <p className="text-xs text-slate-500 mt-1">
+              Choose which metrics to track and set reminders
+            </p>
+          </div>
         </div>
 
-        {settings.waterIntake.enabled && (
-          <div className="space-y-4 pt-4 border-t">
-            <div>
-              <Label className="text-slate-700 mb-2 block">Reminder Times</Label>
-              <div className="space-y-2">
-                {settings.waterIntake.times.map((time, index) => (
-                  <div key={index} className="flex items-center gap-2">
-                    <Clock className="text-slate-400" size={16} />
-                    <Select value={time} onValueChange={(val) => updateWaterTime(index, val)}>
-                      <SelectTrigger className="flex-1">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {timeOptions.map(t => (
-                          <SelectItem key={t} value={t}>{t}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    {settings.waterIntake.times.length > 1 && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => removeWaterTime(index)}
-                        className="text-red-500 hover:text-red-600 hover:bg-red-50"
-                      >
-                        Remove
-                      </Button>
-                    )}
-                  </div>
-                ))}
-              </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={addWaterTime}
-                className="mt-3 w-full"
-              >
-                + Add Reminder
-              </Button>
-            </div>
-          </div>
-        )}
-      </Card>
+        <div className="space-y-3 pt-2">
+          {renderFeatureCard(
+            "hydration",
+            <Droplets className="text-teal-600" size={20} />,
+            "Hydration",
+            "Track water intake levels"
+          )}
 
-      {/* Caffeine Intake Reminders */}
-      <Card className="p-4 bg-white">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-amber-100 rounded-lg">
-              <Coffee className="text-amber-700" size={20} />
-            </div>
-            <div>
-              <Label htmlFor="caffeine-intake" className="text-slate-800">
-                Caffeine Intake Reminders
-              </Label>
-              <p className="text-xs text-slate-500 mt-1">
-                Track your caffeine consumption
-              </p>
-            </div>
-          </div>
-          <Switch
-            id="caffeine-intake"
-            checked={settings.caffeineIntake.enabled}
-            onCheckedChange={updateCaffeineEnabled}
-          />
+          {renderFeatureCard(
+            "stress",
+            <Brain className="text-teal-600" size={20} />,
+            "Stress Level",
+            "Monitor stress and tension"
+          )}
+
+          {renderFeatureCard(
+            "caffeine",
+            <Coffee className="text-teal-600" size={20} />,
+            "Caffeine Intake",
+            "Log coffee, tea, and energy drinks"
+          )}
+
+          {renderFeatureCard(
+            "alcohol",
+            <Wine className="text-teal-600" size={20} />,
+            "Alcohol Consumption",
+            "Track alcohol intake"
+          )}
+
+          {renderFeatureCard(
+            "screenTime",
+            <Smartphone className="text-teal-600" size={20} />,
+            "Screen Time",
+            "Monitor daily screen exposure"
+          )}
+
+          {renderFeatureCard(
+            "exercise",
+            <Dumbbell className="text-teal-600" size={20} />,
+            "Exercise",
+            "Track physical activity levels"
+          )}
+
+          {renderFeatureCard(
+            "relaxing",
+            <Sun className="text-teal-600" size={20} />,
+            "Relaxation Time",
+            "Log meditation and relaxation"
+          )}
         </div>
-
-        {settings.caffeineIntake.enabled && (
-          <div className="space-y-4 pt-4 border-t">
-            <div>
-              <Label className="text-slate-700 mb-2 block">Reminder Times</Label>
-              <p className="text-xs text-slate-500 mb-3">
-                Log your caffeine intake at these times
-              </p>
-              <div className="space-y-2">
-                {settings.caffeineIntake.times.map((time, index) => (
-                  <div key={index} className="flex items-center gap-2">
-                    <Clock className="text-slate-400" size={16} />
-                    <Select value={time} onValueChange={(val) => updateCaffeineTime(index, val)}>
-                      <SelectTrigger className="flex-1">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {timeOptions.map(t => (
-                          <SelectItem key={t} value={t}>{t}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    {settings.caffeineIntake.times.length > 1 && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => removeCaffeineTime(index)}
-                        className="text-red-500 hover:text-red-600 hover:bg-red-50"
-                      >
-                        Remove
-                      </Button>
-                    )}
-                  </div>
-                ))}
-              </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={addCaffeineTime}
-                className="mt-3 w-full"
-              >
-                + Add Reminder
-              </Button>
-            </div>
-          </div>
-        )}
       </Card>
 
       {/* Connected Apps */}
@@ -795,7 +772,7 @@ export function SettingsPage() {
         <div className="fixed bottom-20 left-4 right-4 z-20">
           <Button
             onClick={handleSave}
-            className="w-full bg-indigo-600 hover:bg-indigo-700"
+            className="w-full bg-teal-600 hover:bg-teal-700"
             size="lg"
           >
             Save Settings

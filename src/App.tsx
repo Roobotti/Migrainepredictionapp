@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./components/ui/tabs";
-import { Activity, Calendar, BarChart3, Info, Settings, Moon, Plus } from "lucide-react";
+import { Activity, Calendar, BarChart3, Info, Settings, Moon, Plus, X } from "lucide-react";
 import { RiskLevelPage } from "./components/RiskLevelPage";
 import { CalendarPage } from "./components/CalendarPage";
 import { AnalyticsPage } from "./components/AnalyticsPage";
@@ -15,6 +15,7 @@ import { Toaster } from "./components/ui/sonner";
 import { AnimatePresence } from "motion/react";
 import {
   Sheet,
+  SheetClose,
   SheetContent,
   SheetDescription,
   SheetHeader,
@@ -69,9 +70,10 @@ export default function App() {
     }, 2000);
   };
 
-  const handleOnboardingComplete = (weights: Record<string, number>) => {
+  const handleOnboardingComplete = (weights: Record<string, number>, trackableFeatures: Record<string, boolean>) => {
     setTriggerWeights(weights);
     localStorage.setItem("trigger_weights", JSON.stringify(weights));
+    localStorage.setItem("trackable_features", JSON.stringify(trackableFeatures));
     localStorage.setItem("onboarding_completed", "true");
     setAppState("main");
   };
@@ -151,7 +153,7 @@ export default function App() {
         {!screenSaverOpen && (
           <button
             onClick={() => setScreenSaverOpen(true)}
-            className="fixed bottom-24 right-4 z-40 p-3 bg-indigo-600/40 hover:bg-indigo-600/60 text-white rounded-full shadow-lg hover:shadow-xl transition-all active:scale-95"
+            className="fixed bottom-24 right-4 z-40 p-3 bg-teal-600/40 hover:bg-teal-600/60 text-white rounded-full shadow-lg hover:shadow-xl transition-all active:scale-95"
             aria-label="Test screen saver"
           >
             <Moon size={20} />
@@ -198,14 +200,20 @@ export default function App() {
 
       {/* Settings Sheet */}
       <Sheet open={settingsOpen} onOpenChange={setSettingsOpen}>
-        <SheetContent side="right" className="w-full sm:max-w-md overflow-y-auto" aria-describedby="settings-description">
-          <SheetHeader>
-            <SheetTitle>Settings</SheetTitle>
-            <SheetDescription id="settings-description">
-              Manage your notification preferences
-            </SheetDescription>
-          </SheetHeader>
-          <div className="mt-4">
+        <SheetContent side="right" className="w-full sm:max-w-md overflow-y-auto p-0" aria-describedby="settings-description">
+          <div className="sticky top-0 z-50 bg-white border-b border-slate-200">
+            <SheetHeader className="pb-3 relative">
+              <SheetTitle>Settings</SheetTitle>
+              <SheetDescription id="settings-description">
+                Manage your notification preferences
+              </SheetDescription>
+              <SheetClose className="absolute top-4 right-4 p-2 rounded-full bg-white/20 backdrop-blur-sm text-slate-700 hover:bg-white/30 transition-colors focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 disabled:pointer-events-none">
+                <X className="size-6" />
+                <span className="sr-only">Close</span>
+              </SheetClose>
+            </SheetHeader>
+          </div>
+          <div className="p-4 pt-2">
             <SettingsPage />
           </div>
         </SheetContent>
@@ -213,7 +221,7 @@ export default function App() {
 
       {/* Add Migraine Report Sheet */}
       <Sheet open={addReportOpen} onOpenChange={setAddReportOpen}>
-        <SheetContent side="bottom" className="h-[90vh] rounded-t-3xl">
+        <SheetContent side="bottom" className="h-[90vh] rounded-t-3xl" aria-describedby="add-migraine-description">
           <AddMigraineReport 
             onClose={handleAddReportClose} 
             initialDate={addReportDate} 

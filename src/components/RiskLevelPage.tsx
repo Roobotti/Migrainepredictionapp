@@ -15,7 +15,7 @@ import {
   ChevronUp,
   Sun
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 interface SubMetric {
   name: string;
@@ -33,6 +33,12 @@ interface HealthMetric {
   subMetrics?: SubMetric[];
 }
 
+interface MigraineDayData {
+  month: number; // 0-11 (9 = October, 10 = November)
+  day: number;
+  severity: "severe" | "moderate" | "mild";
+}
+
 export function RiskLevelPage() {
   const overallRisk = 68; // 0-100
   const riskLevel = overallRisk >= 70 ? "High" : overallRisk >= 40 ? "Medium" : "Low";
@@ -40,11 +46,72 @@ export function RiskLevelPage() {
   const riskTextColor = overallRisk >= 70 ? "text-red-600" : overallRisk >= 40 ? "text-amber-600" : "text-green-600";
 
   const [expandedMetrics, setExpandedMetrics] = useState<string[]>([]);
+  const [weeklyMigraineCount, setWeeklyMigraineCount] = useState(0);
+  const [avgSleep, setAvgSleep] = useState("5.2h");
+  const [avgRisk, setAvgRisk] = useState(62);
+
+  useEffect(() => {
+    // Load migraine data from localStorage (same source as Calendar)
+    const savedData = localStorage.getItem("migraine_calendar_data");
+    if (savedData) {
+      const migraineData: MigraineDayData[] = JSON.parse(savedData);
+      
+      // Calculate current week (Monday to today)
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const dayOfWeek = today.getDay();
+      const monday = new Date(today);
+      monday.setDate(today.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
+      monday.setHours(0, 0, 0, 0);
+      
+      // Filter migraines in current week
+      const currentWeekMigraines = migraineData.filter(m => {
+        const migraineDate = new Date(2025, m.month, m.day);
+        migraineDate.setHours(0, 0, 0, 0);
+        return migraineDate >= monday && migraineDate <= today;
+      });
+      
+      setWeeklyMigraineCount(currentWeekMigraines.length);
+      
+      // Calculate average sleep based on severity
+      if (currentWeekMigraines.length > 0) {
+        const totalSleepMinutes = currentWeekMigraines.reduce((sum, m) => {
+          const sleepMinutes = m.severity === "severe" ? 4.75 * 60 : 
+                              m.severity === "moderate" ? 5.5 * 60 : 
+                              6.33 * 60;
+          return sum + sleepMinutes;
+        }, 0);
+        const avgSleepHours = totalSleepMinutes / currentWeekMigraines.length / 60;
+        setAvgSleep(`${avgSleepHours.toFixed(1)}h`);
+        
+        // Calculate average risk based on severity
+        const totalRisk = currentWeekMigraines.reduce((sum, m) => {
+          const risk = m.severity === "severe" ? 85 : 
+                      m.severity === "moderate" ? 68 : 
+                      52;
+          return sum + risk;
+        }, 0);
+        setAvgRisk(Math.round(totalRisk / currentWeekMigraines.length));
+      }
+    }
+  }, []);
 
   const toggleMetric = (id: string) => {
     setExpandedMetrics(prev => 
       prev.includes(id) ? prev.filter(m => m !== id) : [...prev, id]
     );
+  };
+
+  // Calculate current week (Monday to today)
+  const today = new Date();
+  const dayOfWeek = today.getDay();
+  const monday = new Date(today);
+  monday.setDate(today.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
+  
+  const formatWeekRange = () => {
+    const mondayStr = monday.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    const todayStr = today.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    return `${mondayStr} - ${todayStr}`;
   };
 
   const healthMetrics: HealthMetric[] = [
@@ -210,18 +277,18 @@ export function RiskLevelPage() {
 
       {/* Quick Stats */}
       <Card className="p-4 bg-gradient-to-br from-indigo-50 to-purple-50 border-indigo-200">
-        <h3 className="text-slate-700 mb-3">Weekly Summary</h3>
+        <h3 className="text-slate-700 mb-3">Weekly Summary ({formatWeekRange()})</h3>
         <div className="grid grid-cols-3 gap-3 text-center">
           <div>
-            <div className="text-2xl text-indigo-600">3</div>
+            <div className="text-2xl text-indigo-600">{weeklyMigraineCount}</div>
             <div className="text-xs text-slate-600 mt-1">Migraines</div>
           </div>
           <div>
-            <div className="text-2xl text-purple-600">5.2h</div>
+            <div className="text-2xl text-purple-600">{avgSleep}</div>
             <div className="text-xs text-slate-600 mt-1">Avg Sleep</div>
           </div>
           <div>
-            <div className="text-2xl text-pink-600">62%</div>
+            <div className="text-2xl text-pink-600">{avgRisk}%</div>
             <div className="text-xs text-slate-600 mt-1">Avg Risk</div>
           </div>
         </div>

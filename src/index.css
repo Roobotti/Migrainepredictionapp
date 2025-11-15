@@ -114,7 +114,6 @@
     --color-cyan-50: oklch(.984 .019 200.873);
     --color-cyan-100: oklch(.956 .045 203.388);
     --color-cyan-200: oklch(.917 .08 205.041);
-    --color-cyan-500: oklch(.715 .143 215.221);
     --color-cyan-600: oklch(.609 .126 221.723);
     --color-blue-50: oklch(.97 .014 254.604);
     --color-blue-200: oklch(.882 .059 254.128);
@@ -127,7 +126,6 @@
     --color-indigo-200: oklch(.87 .065 274.039);
     --color-indigo-500: oklch(.585 .233 277.117);
     --color-indigo-600: oklch(.511 .262 276.966);
-    --color-indigo-700: oklch(.457 .24 277.023);
     --color-indigo-800: oklch(.398 .195 277.366);
     --color-purple-50: oklch(.977 .014 308.299);
     --color-purple-100: oklch(.946 .033 307.174);
@@ -557,6 +555,10 @@
     position: relative;
   }
 
+  .sticky {
+    position: sticky;
+  }
+
   .inset-0 {
     inset: calc(var(--spacing) * 0);
   }
@@ -819,6 +821,11 @@
   .size-4 {
     width: calc(var(--spacing) * 4);
     height: calc(var(--spacing) * 4);
+  }
+
+  .size-6 {
+    width: calc(var(--spacing) * 6);
+    height: calc(var(--spacing) * 6);
   }
 
   .size-7 {
@@ -1431,10 +1438,6 @@
     background-color: var(--color-amber-50);
   }
 
-  .bg-amber-100 {
-    background-color: var(--color-amber-100);
-  }
-
   .bg-amber-500 {
     background-color: var(--color-amber-500);
   }
@@ -1495,20 +1498,6 @@
 
   .bg-indigo-100 {
     background-color: var(--color-indigo-100);
-  }
-
-  .bg-indigo-600 {
-    background-color: var(--color-indigo-600);
-  }
-
-  .bg-indigo-600\/40 {
-    background-color: color-mix(in srgb, oklch(.511 .262 276.966) 40%, transparent);
-  }
-
-  @supports (color: color-mix(in lab, red, red)) {
-    .bg-indigo-600\/40 {
-      background-color: color-mix(in oklab, var(--color-indigo-600) 40%, transparent);
-    }
   }
 
   .bg-input-background {
@@ -1613,6 +1602,16 @@
 
   .bg-teal-600 {
     background-color: var(--color-teal-600);
+  }
+
+  .bg-teal-600\/40 {
+    background-color: color-mix(in srgb, oklch(.6 .118 184.704) 40%, transparent);
+  }
+
+  @supports (color: color-mix(in lab, red, red)) {
+    .bg-teal-600\/40 {
+      background-color: color-mix(in oklab, var(--color-teal-600) 40%, transparent);
+    }
   }
 
   .bg-transparent {
@@ -1872,6 +1871,10 @@
     padding-bottom: calc(var(--spacing) * 2);
   }
 
+  .pb-3 {
+    padding-bottom: calc(var(--spacing) * 3);
+  }
+
   .pb-4 {
     padding-bottom: calc(var(--spacing) * 4);
   }
@@ -2016,10 +2019,6 @@
 
   .text-current {
     color: currentColor;
-  }
-
-  .text-cyan-500 {
-    color: var(--color-cyan-500);
   }
 
   .text-cyan-600 {
@@ -2420,24 +2419,6 @@
   }
 
   @media (hover: hover) {
-    .hover\:bg-indigo-600\/60:hover {
-      background-color: color-mix(in srgb, oklch(.511 .262 276.966) 60%, transparent);
-    }
-
-    @supports (color: color-mix(in lab, red, red)) {
-      .hover\:bg-indigo-600\/60:hover {
-        background-color: color-mix(in oklab, var(--color-indigo-600) 60%, transparent);
-      }
-    }
-  }
-
-  @media (hover: hover) {
-    .hover\:bg-indigo-700:hover {
-      background-color: var(--color-indigo-700);
-    }
-  }
-
-  @media (hover: hover) {
     .hover\:bg-primary:hover {
       background-color: var(--primary);
     }
@@ -2500,6 +2481,18 @@
   @media (hover: hover) {
     .hover\:bg-teal-50:hover {
       background-color: var(--color-teal-50);
+    }
+  }
+
+  @media (hover: hover) {
+    .hover\:bg-teal-600\/60:hover {
+      background-color: color-mix(in srgb, oklch(.6 .118 184.704) 60%, transparent);
+    }
+
+    @supports (color: color-mix(in lab, red, red)) {
+      .hover\:bg-teal-600\/60:hover {
+        background-color: color-mix(in oklab, var(--color-teal-600) 60%, transparent);
+      }
     }
   }
 
@@ -2620,6 +2613,10 @@
     --tw-ring-color: var(--ring);
   }
 
+  .focus\:ring-slate-400:focus {
+    --tw-ring-color: var(--color-slate-400);
+  }
+
   .focus\:ring-offset-2:focus {
     --tw-ring-offset-width: 2px;
     --tw-ring-offset-shadow: var(--tw-ring-inset, ) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);
@@ -2635,6 +2632,11 @@
       outline-offset: 2px;
       outline: 2px solid #0000;
     }
+  }
+
+  .focus\:outline-none:focus {
+    --tw-outline-style: none;
+    outline-style: none;
   }
 
   .focus-visible\:border-ring:focus-visible {
@@ -2956,10 +2958,6 @@
 
   .data-\[state\=open\]\:bg-accent[data-state="open"] {
     background-color: var(--accent);
-  }
-
-  .data-\[state\=open\]\:bg-secondary[data-state="open"] {
-    background-color: var(--secondary);
   }
 
   .data-\[state\=open\]\:text-muted-foreground[data-state="open"] {

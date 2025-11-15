@@ -25,7 +25,7 @@ interface AddMigraineReportProps {
 
 interface MigraineReport {
   date: Date;
-  severity: number;
+  severity: number; // 0 = None, 1-3 = Mild, 4-6 = Moderate, 7-10 = Severe
   symptoms: {
     aura: boolean;
     vomiting: boolean;
@@ -40,10 +40,37 @@ interface MigraineReport {
   relaxing: number | null;
 }
 
+interface TrackableFeatures {
+  hydration: boolean;
+  stress: boolean;
+  caffeine: boolean;
+  alcohol: boolean;
+  screenTime: boolean;
+  exercise: boolean;
+  relaxing: boolean;
+}
+
 export function AddMigraineReport({ onClose, initialDate, isEstimated = false, editingData }: AddMigraineReportProps) {
   const dateScrollRef = useRef<HTMLDivElement>(null);
   const [showEstimationInfo, setShowEstimationInfo] = useState(false);
   const [markedAsFalse, setMarkedAsFalse] = useState(false);
+
+  // Load trackable features from localStorage
+  const [trackableFeatures, setTrackableFeatures] = useState<TrackableFeatures>(() => {
+    const saved = localStorage.getItem("trackable_features");
+    if (saved) {
+      return JSON.parse(saved);
+    }
+    return {
+      hydration: true,
+      stress: true,
+      caffeine: true,
+      alcohol: true,
+      screenTime: true,
+      exercise: true,
+      relaxing: true
+    };
+  });
 
   // Generate all days from January 1st to today
   const dates = useMemo(() => {
@@ -201,7 +228,7 @@ export function AddMigraineReport({ onClose, initialDate, isEstimated = false, e
       <SheetHeader className="px-6 pt-6">
         <div className="flex items-center justify-between">
           <SheetTitle className="flex items-center gap-2">
-            <AlertTriangle className="text-red-600" size={24} />
+            <AlertTriangle className="text-teal-600" size={24} />
             {editingData ? "Edit Migraine Report" : isEstimated ? "Confirm Migraine" : "Add Migraine Report"}
           </SheetTitle>
           {isEstimated && (
@@ -377,119 +404,135 @@ export function AddMigraineReport({ onClose, initialDate, isEstimated = false, e
             <Label className="text-slate-700 block">Additional Information (Optional)</Label>
             
             {/* Water Intake */}
-            <div className="flex items-center p-3 bg-white rounded-lg border border-slate-200">
-              <div className="flex items-center gap-2 flex-1 min-w-0">
-                <Droplets className="text-blue-600 flex-shrink-0" size={18} />
-                <span className="text-sm text-slate-700">Water</span>
+            {trackableFeatures.hydration && (
+              <div className="flex items-center p-3 bg-white rounded-lg border border-slate-200">
+                <div className="flex items-center gap-2 flex-1 min-w-0">
+                  <Droplets className="text-teal-600 flex-shrink-0" size={18} />
+                  <span className="text-sm text-slate-700">Water</span>
+                </div>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <HorizontalPicker
+                    values={Array.from({ length: 51 }, (_, i) => i)}
+                    selectedValue={hydration}
+                    onValueChange={(value) => setHydration(value as number | null)}
+                  />
+                  <span className="text-xs text-slate-500 w-16 text-left">dl</span>
+                </div>
               </div>
-              <div className="flex items-center gap-2 flex-shrink-0">
-                <HorizontalPicker
-                  values={Array.from({ length: 51 }, (_, i) => i)}
-                  selectedValue={hydration}
-                  onValueChange={(value) => setHydration(value as number | null)}
-                />
-                <span className="text-xs text-slate-500 w-16 text-left">dl</span>
-              </div>
-            </div>
+            )}
 
             {/* Caffeine */}
-            <div className="flex items-center p-3 bg-white rounded-lg border border-slate-200">
-              <div className="flex items-center gap-2 flex-1 min-w-0">
-                <Coffee className="text-amber-700 flex-shrink-0" size={18} />
-                <span className="text-sm text-slate-700">Caffeine</span>
+            {trackableFeatures.caffeine && (
+              <div className="flex items-center p-3 bg-white rounded-lg border border-slate-200">
+                <div className="flex items-center gap-2 flex-1 min-w-0">
+                  <Coffee className="text-teal-600 flex-shrink-0" size={18} />
+                  <span className="text-sm text-slate-700">Caffeine</span>
+                </div>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <HorizontalPicker
+                    values={Array.from({ length: 21 }, (_, i) => i)}
+                    selectedValue={caffeine}
+                    onValueChange={(value) => setCaffeine(value as number | null)}
+                  />
+                  <span className="text-xs text-slate-500 w-16 text-left">portions</span>
+                </div>
               </div>
-              <div className="flex items-center gap-2 flex-shrink-0">
-                <HorizontalPicker
-                  values={Array.from({ length: 21 }, (_, i) => i)}
-                  selectedValue={caffeine}
-                  onValueChange={(value) => setCaffeine(value as number | null)}
-                />
-                <span className="text-xs text-slate-500 w-16 text-left">portions</span>
-              </div>
-            </div>
+            )}
 
             {/* Alcohol */}
-            <div className="flex items-center p-3 bg-white rounded-lg border border-slate-200">
-              <div className="flex items-center gap-2 flex-1 min-w-0">
-                <Wine className="text-purple-600 flex-shrink-0" size={18} />
-                <span className="text-sm text-slate-700">Alcohol</span>
+            {trackableFeatures.alcohol && (
+              <div className="flex items-center p-3 bg-white rounded-lg border border-slate-200">
+                <div className="flex items-center gap-2 flex-1 min-w-0">
+                  <Wine className="text-teal-600 flex-shrink-0" size={18} />
+                  <span className="text-sm text-slate-700">Alcohol</span>
+                </div>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <HorizontalPicker
+                    values={Array.from({ length: 21 }, (_, i) => i)}
+                    selectedValue={alcohol}
+                    onValueChange={(value) => setAlcohol(value as number | null)}
+                  />
+                  <span className="text-xs text-slate-500 w-16 text-left">portions</span>
+                </div>
               </div>
-              <div className="flex items-center gap-2 flex-shrink-0">
-                <HorizontalPicker
-                  values={Array.from({ length: 21 }, (_, i) => i)}
-                  selectedValue={alcohol}
-                  onValueChange={(value) => setAlcohol(value as number | null)}
-                />
-                <span className="text-xs text-slate-500 w-16 text-left">portions</span>
-              </div>
-            </div>
+            )}
 
             {/* Exercise */}
-            <div className="flex items-center p-3 bg-white rounded-lg border border-slate-200">
-              <div className="flex items-center gap-2 flex-1 min-w-0">
-                <Dumbbell className="text-green-600 flex-shrink-0" size={18} />
-                <span className="text-sm text-slate-700">Exercise</span>
+            {trackableFeatures.exercise && (
+              <div className="flex items-center p-3 bg-white rounded-lg border border-slate-200">
+                <div className="flex items-center gap-2 flex-1 min-w-0">
+                  <Dumbbell className="text-teal-600 flex-shrink-0" size={18} />
+                  <span className="text-sm text-slate-700">Exercise</span>
+                </div>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <HorizontalPicker
+                    values={Array.from({ length: 25 }, (_, i) => i * 0.5)}
+                    selectedValue={exercise}
+                    onValueChange={(value) => setExercise(value as number | null)}
+                  />
+                  <span className="text-xs text-slate-500 w-16 text-left">hours</span>
+                </div>
               </div>
-              <div className="flex items-center gap-2 flex-shrink-0">
-                <HorizontalPicker
-                  values={Array.from({ length: 25 }, (_, i) => i * 0.5)}
-                  selectedValue={exercise}
-                  onValueChange={(value) => setExercise(value as number | null)}
-                />
-                <span className="text-xs text-slate-500 w-16 text-left">hours</span>
-              </div>
-            </div>
+            )}
 
             {/* Relaxing */}
-            <div className="flex items-center p-3 bg-white rounded-lg border border-slate-200">
-              <div className="flex items-center gap-2 flex-1 min-w-0">
-                <Brain className="text-indigo-600 flex-shrink-0" size={18} />
-                <span className="text-sm text-slate-700">Relaxing</span>
+            {trackableFeatures.relaxing && (
+              <div className="flex items-center p-3 bg-white rounded-lg border border-slate-200">
+                <div className="flex items-center gap-2 flex-1 min-w-0">
+                  <Brain className="text-teal-600 flex-shrink-0" size={18} />
+                  <span className="text-sm text-slate-700">Relaxing</span>
+                </div>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <HorizontalPicker
+                    values={Array.from({ length: 25 }, (_, i) => i * 0.5)}
+                    selectedValue={relaxing}
+                    onValueChange={(value) => setRelaxing(value as number | null)}
+                  />
+                  <span className="text-xs text-slate-500 w-16 text-left">hours</span>
+                </div>
               </div>
-              <div className="flex items-center gap-2 flex-shrink-0">
-                <HorizontalPicker
-                  values={Array.from({ length: 25 }, (_, i) => i * 0.5)}
-                  selectedValue={relaxing}
-                  onValueChange={(value) => setRelaxing(value as number | null)}
-                />
-                <span className="text-xs text-slate-500 w-16 text-left">hours</span>
-              </div>
-            </div>
+            )}
 
             {/* Screen Time */}
-            <div className="flex items-center p-3 bg-white rounded-lg border border-slate-200">
-              <div className="flex items-center gap-2 flex-1 min-w-0">
-                <Smartphone className="text-orange-600 flex-shrink-0" size={18} />
-                <span className="text-sm text-slate-700">Devices</span>
+            {trackableFeatures.screenTime && (
+              <div className="flex items-center p-3 bg-white rounded-lg border border-slate-200">
+                <div className="flex items-center gap-2 flex-1 min-w-0">
+                  <Smartphone className="text-teal-600 flex-shrink-0" size={18} />
+                  <span className="text-sm text-slate-700">Devices</span>
+                </div>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <HorizontalPicker
+                    values={Array.from({ length: 25 }, (_, i) => i * 0.5)}
+                    selectedValue={screenTime}
+                    onValueChange={(value) => setScreenTime(value as number | null)}
+                  />
+                  <span className="text-xs text-slate-500 w-16 text-left">hours</span>
+                </div>
               </div>
-              <div className="flex items-center gap-2 flex-shrink-0">
-                <HorizontalPicker
-                  values={Array.from({ length: 25 }, (_, i) => i * 0.5)}
-                  selectedValue={screenTime}
-                  onValueChange={(value) => setScreenTime(value as number | null)}
-                />
-                <span className="text-xs text-slate-500 w-16 text-left">hours</span>
-              </div>
-            </div>
+            )}
 
             {/* Stress */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Activity className="text-red-600" size={18} />
-                  <span className="text-sm text-slate-700">Stress Level</span>
+            {trackableFeatures.stress && (
+              <div className="p-3 bg-white rounded-lg border border-slate-200">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Activity className="text-teal-600" size={18} />
+                      <span className="text-sm text-slate-700">Stress Level</span>
+                    </div>
+                    <span className="text-sm text-slate-600">{stress}/10</span>
+                  </div>
+                  <Slider
+                    value={[stress]}
+                    onValueChange={(value) => setStress(value[0])}
+                    min={1}
+                    max={10}
+                    step={1}
+                    className="w-full"
+                  />
                 </div>
-                <span className="text-sm text-slate-600">{stress}/10</span>
               </div>
-              <Slider
-                value={[stress]}
-                onValueChange={(value) => setStress(value[0])}
-                min={1}
-                max={10}
-                step={1}
-                className="w-full"
-              />
-            </div>
+            )}
           </div>
         )}
       </div>
@@ -510,7 +553,7 @@ export function AddMigraineReport({ onClose, initialDate, isEstimated = false, e
             className={`flex-1 ${
               markedAsFalse 
                 ? "bg-slate-700 hover:bg-slate-800" 
-                : "bg-indigo-600 hover:bg-indigo-700"
+                : "bg-teal-600 hover:bg-teal-700"
             }`}
           >
             {markedAsFalse 

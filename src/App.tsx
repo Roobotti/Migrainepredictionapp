@@ -228,7 +228,7 @@ export default function App() {
           <button
             onClick={() => setActiveTab("risk")}
             className={`flex flex-col items-center justify-center gap-1 transition-colors ${
-              activeTab === "risk" ? "text-indigo-600" : "text-slate-400"
+              activeTab === "risk" ? "text-teal-600" : "text-slate-400"
             }`}
           >
             <Activity size={20} />
@@ -238,7 +238,7 @@ export default function App() {
           <button
             onClick={() => setActiveTab("calendar")}
             className={`flex flex-col items-center justify-center gap-1 transition-colors ${
-              activeTab === "calendar" ? "text-indigo-600" : "text-slate-400"
+              activeTab === "calendar" ? "text-teal-600" : "text-slate-400"
             }`}
           >
             <Calendar size={20} />
@@ -259,7 +259,7 @@ export default function App() {
           <button
             onClick={() => setActiveTab("analytics")}
             className={`flex flex-col items-center justify-center gap-1 transition-colors ${
-              activeTab === "analytics" ? "text-indigo-600" : "text-slate-400"
+              activeTab === "analytics" ? "text-teal-600" : "text-slate-400"
             }`}
           >
             <BarChart3 size={20} />
@@ -269,7 +269,7 @@ export default function App() {
           <button
             onClick={() => setActiveTab("info")}
             className={`flex flex-col items-center justify-center gap-1 transition-colors relative ${
-              activeTab === "info" ? "text-indigo-600" : "text-slate-400"
+              activeTab === "info" ? "text-teal-600" : "text-slate-400"
             }`}
           >
             <div className="relative">

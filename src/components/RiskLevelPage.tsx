@@ -52,7 +52,7 @@ export function RiskLevelPage() {
       id: "sleep",
       name: "Sleep",
       riskContribution: 25,
-      icon: <Moon className="text-purple-500" size={24} />,
+      icon: <Moon className="text-teal-600" size={24} />,
       status: "danger",
       subMetrics: [
         { name: "Sleep Duration", value: "5h 20m", status: "danger" },
@@ -63,7 +63,7 @@ export function RiskLevelPage() {
       id: "weather",
       name: "Weather",
       riskContribution: 22,
-      icon: <Cloud className="text-slate-500" size={24} />,
+      icon: <Cloud className="text-teal-600" size={24} />,
       status: "danger",
       subMetrics: [
         { name: "Atmospheric Pressure", value: "1008 hPa", status: "danger" },
@@ -76,7 +76,7 @@ export function RiskLevelPage() {
       name: "Screen Time",
       value: "6h 45m",
       riskContribution: 18,
-      icon: <Smartphone className="text-indigo-500" size={24} />,
+      icon: <Smartphone className="text-teal-600" size={24} />,
       status: "warning"
     },
     {
@@ -84,7 +84,7 @@ export function RiskLevelPage() {
       name: "Heart Rate",
       value: "85 bpm",
       riskContribution: 15,
-      icon: <Heart className="text-red-500" size={24} />,
+      icon: <Heart className="text-teal-600" size={24} />,
       status: "warning"
     },
     {
@@ -92,7 +92,7 @@ export function RiskLevelPage() {
       name: "Caffeine Intake",
       value: "3 cups",
       riskContribution: 12,
-      icon: <Coffee className="text-amber-700" size={24} />,
+      icon: <Coffee className="text-teal-600" size={24} />,
       status: "warning"
     },
     {
@@ -100,7 +100,7 @@ export function RiskLevelPage() {
       name: "Hydration",
       value: "4 glasses",
       riskContribution: 8,
-      icon: <Droplets className="text-cyan-500" size={24} />,
+      icon: <Droplets className="text-teal-600" size={24} />,
       status: "warning"
     },
     {
@@ -108,7 +108,7 @@ export function RiskLevelPage() {
       name: "Steps Today",
       value: "3,240",
       riskContribution: 5,
-      icon: <Footprints className="text-blue-500" size={24} />,
+      icon: <Footprints className="text-teal-600" size={24} />,
       status: "normal"
     }
   ];

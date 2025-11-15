@@ -41,7 +41,7 @@ export function InfoPage({ hasNewInsight = false, onInsightViewed }: InfoPagePro
           <AccordionItem value="what-is">
             <AccordionTrigger>
               <div className="flex items-center gap-2">
-                <Brain className="text-indigo-600" size={20} />
+                <Brain className="text-teal-600" size={20} />
                 <span>What is a Migraine?</span>
               </div>
             </AccordionTrigger>
@@ -69,7 +69,7 @@ export function InfoPage({ hasNewInsight = false, onInsightViewed }: InfoPagePro
           <AccordionItem value="symptoms">
             <AccordionTrigger>
               <div className="flex items-center gap-2">
-                <AlertCircle className="text-red-600" size={20} />
+                <AlertCircle className="text-teal-600" size={20} />
                 <span>Common Symptoms</span>
               </div>
             </AccordionTrigger>
@@ -109,7 +109,7 @@ export function InfoPage({ hasNewInsight = false, onInsightViewed }: InfoPagePro
           <AccordionItem value="triggers">
             <AccordionTrigger>
               <div className="flex items-center gap-2">
-                <Activity className="text-amber-600" size={20} />
+                <Activity className="text-teal-600" size={20} />
                 <span>Common Triggers</span>
               </div>
             </AccordionTrigger>
@@ -119,7 +119,7 @@ export function InfoPage({ hasNewInsight = false, onInsightViewed }: InfoPagePro
                 
                 <div className="space-y-3">
                   <div className="flex items-start gap-3 p-3 bg-slate-50 rounded-lg">
-                    <Moon className="text-purple-500 flex-shrink-0 mt-1" size={20} />
+                    <Moon className="text-teal-600 flex-shrink-0 mt-1" size={20} />
                     <div>
                       <h4 className="text-slate-700 mb-1">Sleep Issues</h4>
                       <p className="text-sm">Too little or too much sleep can trigger migraines. Aim for 7-9 hours consistently.</p>
@@ -127,7 +127,7 @@ export function InfoPage({ hasNewInsight = false, onInsightViewed }: InfoPagePro
                   </div>
 
                   <div className="flex items-start gap-3 p-3 bg-slate-50 rounded-lg">
-                    <Droplets className="text-cyan-500 flex-shrink-0 mt-1" size={20} />
+                    <Droplets className="text-teal-600 flex-shrink-0 mt-1" size={20} />
                     <div>
                       <h4 className="text-slate-700 mb-1">Dehydration</h4>
                       <p className="text-sm">Not drinking enough water is a common trigger. Stay hydrated throughout the day.</p>
@@ -135,7 +135,7 @@ export function InfoPage({ hasNewInsight = false, onInsightViewed }: InfoPagePro
                   </div>
 
                   <div className="flex items-start gap-3 p-3 bg-slate-50 rounded-lg">
-                    <Heart className="text-red-500 flex-shrink-0 mt-1" size={20} />
+                    <Heart className="text-teal-600 flex-shrink-0 mt-1" size={20} />
                     <div>
                       <h4 className="text-slate-700 mb-1">Stress</h4>
                       <p className="text-sm">Emotional stress and anxiety can trigger migraines. Practice relaxation techniques.</p>
@@ -154,7 +154,7 @@ export function InfoPage({ hasNewInsight = false, onInsightViewed }: InfoPagePro
           <AccordionItem value="prevention">
             <AccordionTrigger>
               <div className="flex items-center gap-2">
-                <Lightbulb className="text-yellow-600" size={20} />
+                <Lightbulb className="text-teal-600" size={20} />
                 <span>Prevention Tips</span>
               </div>
             </AccordionTrigger>
@@ -195,7 +195,7 @@ export function InfoPage({ hasNewInsight = false, onInsightViewed }: InfoPagePro
           <AccordionItem value="treatment">
             <AccordionTrigger>
               <div className="flex items-center gap-2">
-                <Heart className="text-pink-600" size={20} />
+                <Heart className="text-teal-600" size={20} />
                 <span>Treatment Options</span>
               </div>
             </AccordionTrigger>
@@ -254,7 +254,7 @@ export function InfoPage({ hasNewInsight = false, onInsightViewed }: InfoPagePro
           <AccordionItem value="when-to-seek">
             <AccordionTrigger>
               <div className="flex items-center gap-2">
-                <PhoneCall className="text-red-600" size={20} />
+                <PhoneCall className="text-teal-600" size={20} />
                 <span>When to Seek Help</span>
               </div>
             </AccordionTrigger>

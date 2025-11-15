@@ -3,7 +3,7 @@
 ### Live Demo
 Try the app instantly using pre-loaded sample data!
 A hosted version will be available throughout the hackathon.
-Available at: [DEMO](https://patio-dragon-01428482.figma.site)
+Available at: [DEMO](https://hedari-migraine-prediction.figma.site/)
 
 ---
 

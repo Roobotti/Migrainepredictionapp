@@ -220,7 +220,7 @@ export function Onboarding({ onComplete }: OnboardingProps) {
               Skip
             </Button>
           </div>
-          <Progress value={progressPercent} className="h-2" />
+          <Progress value={progressPercent} className="h-2 bg-teal-100 [&>div]:bg-teal-600" />
         </div>
 
         <div className="max-w-md mx-auto">

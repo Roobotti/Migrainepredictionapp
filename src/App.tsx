@@ -48,6 +48,7 @@ export default function App() {
   const [addReportIsEstimated, setAddReportIsEstimated] = useState(false);
   const [editingMigraineData, setEditingMigraineData] = useState<any>(undefined);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [hasInfoInsight, setHasInfoInsight] = useState(false);
 
   // Check if user has completed onboarding before and handle loading transition
   useEffect(() => {
@@ -62,10 +63,25 @@ export default function App() {
         if (savedWeights) {
           setTriggerWeights(JSON.parse(savedWeights));
         }
+        // Check for info insight notification
+        const infoInsight = localStorage.getItem("info_insight_available");
+        setHasInfoInsight(infoInsight === "true");
       } else {
         setAppState("onboarding");
       }
     }, 2000);
+  }, []);
+
+  // Listen for changes to info insight availability
+  useEffect(() => {
+    const checkInfoInsight = () => {
+      const infoInsight = localStorage.getItem("info_insight_available");
+      setHasInfoInsight(infoInsight === "true");
+    };
+    
+    // Check periodically
+    const interval = setInterval(checkInfoInsight, 1000);
+    return () => clearInterval(interval);
   }, []);
 
   const handleOnboardingComplete = (weights: Record<string, number>, trackableFeatures: Record<string, boolean>) => {
@@ -151,12 +167,12 @@ export default function App() {
         )}
 
         {/* Header */}
-        <header className="flex-shrink-0 bg-white border-b border-slate-200 px-4 py-4 z-10 shadow-sm">
+        <header className="flex-shrink-0 bg-white border-b border-slate-200 px-4 py-2 z-10 shadow-sm">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <svg
-              width="40"
-              height="40"
+              width="28"
+              height="28"
               viewBox="0 0 120 120"
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
@@ -179,10 +195,10 @@ export default function App() {
           <div className="flex justify-end">
             <button
               onClick={() => setSettingsOpen(true)}
-              className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
+              className="p-1.5 hover:bg-slate-100 rounded-lg transition-colors"
               aria-label="Open settings"
             >
-              <Settings size={24} className="text-slate-600" />
+              <Settings size={20} className="text-slate-600" />
             </button>
           </div>
         </div>
@@ -190,8 +206,8 @@ export default function App() {
 
       {/* Settings Sheet */}
       <Sheet open={settingsOpen} onOpenChange={setSettingsOpen}>
-        <SheetContent side="right" className="w-full sm:max-w-md overflow-y-auto p-0" aria-describedby="settings-description">
-          <div className="sticky top-0 z-50 bg-white border-b border-slate-200">
+        <SheetContent side="right" className="w-full sm:max-w-md p-0 flex flex-col h-full" aria-describedby="settings-description">
+          <div className="flex-shrink-0 bg-white border-b border-slate-200">
             <SheetHeader className="pb-3 relative">
               <SheetTitle>Settings</SheetTitle>
               <SheetDescription id="settings-description">
@@ -203,7 +219,7 @@ export default function App() {
               </SheetClose>
             </SheetHeader>
           </div>
-          <div className="p-4 pt-2">
+          <div className="flex-1 overflow-y-auto p-4 pt-2">
             <SettingsPage />
           </div>
         </SheetContent>
@@ -212,6 +228,12 @@ export default function App() {
       {/* Add Migraine Report Sheet */}
       <Sheet open={addReportOpen} onOpenChange={setAddReportOpen}>
         <SheetContent side="bottom" className="h-[90vh] rounded-t-3xl" aria-describedby="add-migraine-description">
+          <SheetHeader className="sr-only">
+            <SheetTitle>Add Migraine Report</SheetTitle>
+            <SheetDescription id="add-migraine-description">
+              Record your migraine details and health metrics
+            </SheetDescription>
+          </SheetHeader>
           <AddMigraineReport 
             onClose={handleAddReportClose} 
             initialDate={addReportDate} 
@@ -240,7 +262,13 @@ export default function App() {
           </TabsContent>
           
           <TabsContent value="info" className="mt-0 h-full w-full">
-            <InfoPage />
+            <InfoPage 
+              hasNewInsight={hasInfoInsight}
+              onInsightViewed={() => {
+                localStorage.removeItem("info_insight_available");
+                setHasInfoInsight(false);
+              }}
+            />
           </TabsContent>
         </Tabs>
       </main>
@@ -302,6 +330,9 @@ export default function App() {
             >
               <div className="relative">
                 <Info size={20} />
+                {hasInfoInsight && (
+                  <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full border border-white"></span>
+                )}
               </div>
               <span className="text-xs">Info</span>
             </button>

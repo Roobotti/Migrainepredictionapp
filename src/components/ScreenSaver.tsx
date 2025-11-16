@@ -22,10 +22,10 @@ export function ScreenSaver({
 
   useEffect(() => {
     if (isOpen) {
-      // Show notification after 2 seconds
+      // Show notification after 500ms
       const timer = setTimeout(() => {
         setShowNotification(true);
-      }, 2000);
+      }, 500);
 
       return () => clearTimeout(timer);
     } else {

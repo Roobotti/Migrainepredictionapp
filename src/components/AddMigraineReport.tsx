@@ -4,10 +4,10 @@ import { Label } from "./ui/label";
 import { Slider } from "./ui/slider";
 import { Checkbox } from "./ui/checkbox";
 import { Card } from "./ui/card";
+import { Input } from "./ui/input";
 import { SheetHeader, SheetTitle, SheetDescription } from "./ui/sheet";
 import { AlertTriangle, Droplets, Brain, Activity, Coffee, Sun, Info, Wine, Dumbbell, Smartphone } from "lucide-react";
 import { toast } from "sonner@2.0.3";
-import { VerticalPicker } from "./VerticalPicker";
 import {
   Dialog,
   DialogContent,
@@ -107,13 +107,13 @@ export function AddMigraineReport({ onClose, initialDate, isEstimated = false, e
     vomiting: false,
     nausea: false,
   });
-  const [hydration, setHydration] = useState<number | null>(editingData?.hydration ?? null);
+  const [hydration, setHydration] = useState<string>(editingData?.hydration !== null && editingData?.hydration !== undefined ? editingData.hydration.toString() : "-");
   const [stress, setStress] = useState<number>(editingData?.stress || 5);
-  const [caffeine, setCaffeine] = useState<number | null>(editingData?.caffeine ?? null);
-  const [alcohol, setAlcohol] = useState<number | null>(editingData?.alcohol ?? null);
-  const [screenTime, setScreenTime] = useState<number | null>(editingData?.screenTime ?? null);
-  const [exercise, setExercise] = useState<number | null>(editingData?.exercise ?? null);
-  const [relaxing, setRelaxing] = useState<number | null>(editingData?.relaxing ?? null);
+  const [caffeine, setCaffeine] = useState<string>(editingData?.caffeine !== null && editingData?.caffeine !== undefined ? editingData.caffeine.toString() : "-");
+  const [alcohol, setAlcohol] = useState<string>(editingData?.alcohol !== null && editingData?.alcohol !== undefined ? editingData.alcohol.toString() : "-");
+  const [screenTime, setScreenTime] = useState<string>(editingData?.screenTime !== null && editingData?.screenTime !== undefined ? editingData.screenTime.toString() : "-");
+  const [exercise, setExercise] = useState<string>(editingData?.exercise !== null && editingData?.exercise !== undefined ? editingData.exercise.toString() : "-");
+  const [relaxing, setRelaxing] = useState<string>(editingData?.relaxing !== null && editingData?.relaxing !== undefined ? editingData.relaxing.toString() : "-");
 
   const selectedDate = dates[selectedDateIndex];
   const currentMonth = new Date().getMonth();
@@ -183,18 +183,25 @@ export function AddMigraineReport({ onClose, initialDate, isEstimated = false, e
       return;
     }
 
+    // Convert string values to numbers or null
+    const parseValue = (value: string): number | null => {
+      if (value === "-" || value === "") return null;
+      const parsed = parseFloat(value);
+      return isNaN(parsed) ? null : parsed;
+    };
+
     // Here you would save the report to your backend/storage
     const report: MigraineReport = {
       date: selectedDate,
       severity,
       symptoms,
-      hydration,
+      hydration: parseValue(hydration),
       stress,
-      caffeine,
-      alcohol,
-      screenTime,
-      exercise,
-      relaxing,
+      caffeine: parseValue(caffeine),
+      alcohol: parseValue(alcohol),
+      screenTime: parseValue(screenTime),
+      exercise: parseValue(exercise),
+      relaxing: parseValue(relaxing),
     };
 
     // Save to localStorage (in real app, this would go to a backend)
@@ -456,10 +463,18 @@ export function AddMigraineReport({ onClose, initialDate, isEstimated = false, e
                   <span className="text-sm text-slate-700">Water</span>
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">
-                  <VerticalPicker
-                    values={Array.from({ length: 51 }, (_, i) => i)}
-                    selectedValue={hydration}
-                    onValueChange={(value) => setHydration(value as number | null)}
+                  <Input
+                    type="text"
+                    inputMode="decimal"
+                    value={hydration}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (value === "" || value === "-" || /^\d*\.?\d*$/.test(value)) {
+                        setHydration(value);
+                      }
+                    }}
+                    className="w-16 h-8 text-center"
+                    placeholder="-"
                   />
                   <span className="text-xs text-slate-500 w-16 text-left">dl</span>
                 </div>
@@ -474,10 +489,18 @@ export function AddMigraineReport({ onClose, initialDate, isEstimated = false, e
                   <span className="text-sm text-slate-700">Caffeine</span>
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">
-                  <VerticalPicker
-                    values={Array.from({ length: 21 }, (_, i) => i)}
-                    selectedValue={caffeine}
-                    onValueChange={(value) => setCaffeine(value as number | null)}
+                  <Input
+                    type="text"
+                    inputMode="decimal"
+                    value={caffeine}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (value === "" || value === "-" || /^\d*\.?\d*$/.test(value)) {
+                        setCaffeine(value);
+                      }
+                    }}
+                    className="w-16 h-8 text-center"
+                    placeholder="-"
                   />
                   <span className="text-xs text-slate-500 w-16 text-left">portions</span>
                 </div>
@@ -492,10 +515,18 @@ export function AddMigraineReport({ onClose, initialDate, isEstimated = false, e
                   <span className="text-sm text-slate-700">Alcohol</span>
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">
-                  <VerticalPicker
-                    values={Array.from({ length: 21 }, (_, i) => i)}
-                    selectedValue={alcohol}
-                    onValueChange={(value) => setAlcohol(value as number | null)}
+                  <Input
+                    type="text"
+                    inputMode="decimal"
+                    value={alcohol}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (value === "" || value === "-" || /^\d*\.?\d*$/.test(value)) {
+                        setAlcohol(value);
+                      }
+                    }}
+                    className="w-16 h-8 text-center"
+                    placeholder="-"
                   />
                   <span className="text-xs text-slate-500 w-16 text-left">portions</span>
                 </div>
@@ -510,10 +541,18 @@ export function AddMigraineReport({ onClose, initialDate, isEstimated = false, e
                   <span className="text-sm text-slate-700">Exercise</span>
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">
-                  <VerticalPicker
-                    values={Array.from({ length: 25 }, (_, i) => i * 0.5)}
-                    selectedValue={exercise}
-                    onValueChange={(value) => setExercise(value as number | null)}
+                  <Input
+                    type="text"
+                    inputMode="decimal"
+                    value={exercise}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (value === "" || value === "-" || /^\d*\.?\d*$/.test(value)) {
+                        setExercise(value);
+                      }
+                    }}
+                    className="w-16 h-8 text-center"
+                    placeholder="-"
                   />
                   <span className="text-xs text-slate-500 w-16 text-left">hours</span>
                 </div>
@@ -528,10 +567,18 @@ export function AddMigraineReport({ onClose, initialDate, isEstimated = false, e
                   <span className="text-sm text-slate-700">Relaxing</span>
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">
-                  <VerticalPicker
-                    values={Array.from({ length: 25 }, (_, i) => i * 0.5)}
-                    selectedValue={relaxing}
-                    onValueChange={(value) => setRelaxing(value as number | null)}
+                  <Input
+                    type="text"
+                    inputMode="decimal"
+                    value={relaxing}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (value === "" || value === "-" || /^\d*\.?\d*$/.test(value)) {
+                        setRelaxing(value);
+                      }
+                    }}
+                    className="w-16 h-8 text-center"
+                    placeholder="-"
                   />
                   <span className="text-xs text-slate-500 w-16 text-left">hours</span>
                 </div>
@@ -571,7 +618,11 @@ export function AddMigraineReport({ onClose, initialDate, isEstimated = false, e
         <div className="flex gap-3">
           <Button
             variant="outline"
-            onClick={onClose}
+            onClick={() => {
+              // Dispatch event to clear selected date even on cancel
+              window.dispatchEvent(new Event('migrainereport:added'));
+              onClose();
+            }}
             className="flex-1"
           >
             Cancel
@@ -598,13 +649,13 @@ export function AddMigraineReport({ onClose, initialDate, isEstimated = false, e
 
       {/* Estimation Info Dialog */}
       <Dialog open={showEstimationInfo} onOpenChange={setShowEstimationInfo}>
-        <DialogContent className="max-w-sm" aria-describedby="estimation-info-description">
+        <DialogContent className="max-w-sm">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Info className="text-teal-600" size={24} />
               Why We Estimated This Migraine
             </DialogTitle>
-            <DialogDescription id="estimation-info-description">
+            <DialogDescription>
               Our AI analyzed your health patterns and detected migraine indicators
             </DialogDescription>
           </DialogHeader>

@@ -51,6 +51,32 @@ export function RiskLevelPage() {
   const [avgSleep, setAvgSleep] = useState("5.2h");
   const [avgRisk, setAvgRisk] = useState(62);
   const [trackableFeatures, setTrackableFeatures] = useState<Record<string, boolean>>({});
+  const [todayData, setTodayData] = useState<any>(null);
+
+  // Load today's migraine report data
+  useEffect(() => {
+    const reportsData = localStorage.getItem("migraine_reports");
+    if (reportsData) {
+      try {
+        const reports = JSON.parse(reportsData);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        // Find today's report
+        const todayReport = reports.find((report: any) => {
+          const reportDate = new Date(report.date);
+          reportDate.setHours(0, 0, 0, 0);
+          return reportDate.getTime() === today.getTime();
+        });
+        
+        if (todayReport) {
+          setTodayData(todayReport);
+        }
+      } catch (error) {
+        console.error("Error loading today's report:", error);
+      }
+    }
+  }, []);
 
   // Load trackable features from settings
   useEffect(() => {
@@ -204,12 +230,21 @@ export function RiskLevelPage() {
     }
   ];
 
-  // Filter metrics based on trackable features from settings
+  // Filter metrics based on trackable features from settings AND today's data
   const filteredMetrics = healthMetrics.filter(metric => {
-    // Always show sleep, weather, and heart rate (non-trackable features)
+    // Always show sleep, weather, heart rate, and steps (non-trackable features)
     if (!metric.trackableKey) return true;
-    // Show trackable features only if enabled in settings
-    return trackableFeatures[metric.trackableKey] === true;
+    
+    // For trackable features, only show if:
+    // 1. Enabled in settings
+    // 2. Has actual data for today (not null and not '-')
+    if (trackableFeatures[metric.trackableKey] !== true) return false;
+    
+    // Check if today's data has this metric
+    if (!todayData) return false;
+    
+    const value = todayData[metric.trackableKey];
+    return value !== null && value !== undefined && value !== '-' && value !== '';
   });
 
   return (

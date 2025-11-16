@@ -14,7 +14,10 @@ import {
   Droplets,
   Activity,
   PhoneCall,
+  TrendingUp,
+  X,
 } from "lucide-react";
+import { useEffect, useState } from "react";
 
 interface InfoPageProps {
   hasNewInsight?: boolean;
@@ -22,6 +25,21 @@ interface InfoPageProps {
 }
 
 export function InfoPage({ hasNewInsight = false, onInsightViewed }: InfoPageProps) {
+  const [showInsight, setShowInsight] = useState(false);
+
+  useEffect(() => {
+    if (hasNewInsight) {
+      setShowInsight(true);
+      if (onInsightViewed) {
+        onInsightViewed();
+      }
+    }
+  }, [hasNewInsight, onInsightViewed]);
+
+  const handleDismissInsight = () => {
+    setShowInsight(false);
+  };
+
   return (
     <div className="p-4 space-y-4">
       {/* Regular Header Card - Always visible */}
@@ -34,6 +52,38 @@ export function InfoPage({ hasNewInsight = false, onInsightViewed }: InfoPagePro
           Learn about migraine triggers, symptoms, and management strategies to better control your condition.
         </p>
       </Card>
+
+      {/* Insight Banner */}
+      {showInsight && (
+        <Card className="p-4 bg-gradient-to-br from-amber-50 to-orange-50 border-2 border-amber-300 relative">
+          <button
+            onClick={handleDismissInsight}
+            className="absolute top-3 right-3 p-1 hover:bg-amber-200 rounded-full transition-colors"
+            aria-label="Dismiss insight"
+          >
+            <X size={16} className="text-amber-700" />
+          </button>
+          <div className="flex items-start gap-3 pr-6">
+            <div className="p-2 bg-amber-200 rounded-full flex-shrink-0">
+              <TrendingUp className="text-amber-700" size={20} />
+            </div>
+            <div>
+              <p className="text-sm text-amber-900">
+                Hey, we have noticed that weather has been affecting your migraine recently. Check{" "}
+                <a 
+                  href="https://migrainetrust.org/live-with-migraine/self-management/common-triggers/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-amber-700 underline hover:text-amber-800 font-medium"
+                >
+                  this
+                </a>
+                {" "}info page to learn how to take that into consideration.
+              </p>
+            </div>
+          </div>
+        </Card>
+      )}
 
       {/* Information Accordion */}
       <Card className="p-4 bg-white">

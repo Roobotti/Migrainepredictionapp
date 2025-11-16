@@ -268,9 +268,12 @@ export function AnalyticsPage() {
         severe: filteredReports.filter(r => r.severity > 6).length,
       };
 
+      // Filter out "none" severity entries for total migraine count
+      const actualMigraineReports = filteredReports.filter(r => r.severity !== "none");
+
       // Calculate monthly averages
       const monthCount = Object.keys(monthlyData).length;
-      const avgMigrainesPerMonth = filteredReports.length / Math.max(monthCount, 1);
+      const avgMigrainesPerMonth = actualMigraineReports.length / Math.max(monthCount, 1);
 
       // Prepare monthly summary data
       const monthlySummary = Object.keys(monthlyData).sort().map(monthKey => {
@@ -299,7 +302,7 @@ export function AnalyticsPage() {
       const medicalReport: MedicalReportData = {
         periodStart: startDate,
         periodEnd: now,
-        totalMigraines: filteredReports.length,
+        totalMigraines: actualMigraineReports.length,
         avgMigrainesPerMonth: avgMigrainesPerMonth,
         severityBreakdown: severityBreakdown,
         topRiskFactors: topRiskFactors,
@@ -413,13 +416,13 @@ export function AnalyticsPage() {
 
       {/* Medical Report Modal */}
       <Dialog open={showMedicalReport} onOpenChange={setShowMedicalReport}>
-        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto" aria-describedby="medical-report-description">
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-xl">
               <FileText className="h-5 w-5 text-teal-600" />
               Medical Migraine Report
             </DialogTitle>
-            <DialogDescription id="medical-report-description">
+            <DialogDescription>
               Professional summary for healthcare providers
             </DialogDescription>
           </DialogHeader>

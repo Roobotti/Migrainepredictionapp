@@ -6,7 +6,7 @@ import { TrendingUp, Calendar } from "lucide-react";
 interface MigraineCalendarData {
   month: number; // 0-11 (9 = October, 10 = November)
   day: number;
-  severity: "severe" | "moderate" | "mild";
+  severity: "severe" | "moderate" | "mild" | "none";
 }
 
 interface DayOfWeekData {
@@ -42,13 +42,22 @@ export function WeeklyTriggerTrends() {
       
       const dayOrder = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
       
-      calendarData.forEach((item) => {
+      // Filter out "none" severity entries
+      const actualMigraines = calendarData.filter((item) => item.severity !== "none");
+      
+      actualMigraines.forEach((item) => {
         const date = new Date(2025, item.month, item.day);
         const dayOfWeek = date.toLocaleDateString('en-US', { weekday: 'long' });
         dayOfWeekCounts[dayOfWeek]++;
       });
       
-      const totalMigraines = calendarData.length;
+      const totalMigraines = actualMigraines.length;
+      
+      // Only proceed if there are actual migraines
+      if (totalMigraines === 0) {
+        setDayOfWeekData([]);
+        return;
+      }
       
       // Convert to array format for chart
       const chartData: DayOfWeekData[] = dayOrder.map(day => ({

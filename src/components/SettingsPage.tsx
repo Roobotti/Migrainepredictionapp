@@ -479,7 +479,8 @@ export function SettingsPage() {
   };
 
   return (
-    <div className="space-y-4 pb-24">
+    <div className="relative min-h-full flex flex-col">
+    <div className="flex-1 space-y-4 pb-4">
 
       {/* Smart Migraine Notifications */}
       <Card className="p-4 bg-white">
@@ -758,6 +759,7 @@ export function SettingsPage() {
                 localStorage.removeItem("migraine_calendar_data");
                 localStorage.removeItem("data_populated");
                 localStorage.removeItem("info_update_seen");
+                localStorage.removeItem("info_insight_available");
                 toast.success("App will restart with onboarding and demo");
                 setTimeout(() => {
                   window.location.reload();
@@ -771,18 +773,20 @@ export function SettingsPage() {
         </div>
       </Card>
 
-      {/* Save Button */}
-      {hasChanges && (
-        <div className="fixed bottom-20 left-4 right-4 z-20">
-          <Button
-            onClick={handleSave}
-            className="w-full bg-teal-600 hover:bg-teal-700"
-            size="lg"
-          >
-            Save Settings
-          </Button>
-        </div>
-      )}
+    </div>
+    
+    {/* Save Button - Sticky at bottom */}
+    {hasChanges && (
+      <div className="flex-shrink-0 sticky bottom-0 bg-white border-t border-slate-200 shadow-lg z-20 mt-auto">
+        <Button
+          onClick={handleSave}
+          className="w-full bg-teal-600 hover:bg-teal-700 rounded-none"
+          size="lg"
+        >
+          Save Settings
+        </Button>
+      </div>
+    )}
     </div>
   );
 }

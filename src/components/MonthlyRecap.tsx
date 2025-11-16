@@ -6,7 +6,7 @@ import { Button } from "./ui/button";
 interface MigraineDayData {
   month: number;
   day: number;
-  severity: "severe" | "moderate" | "mild";
+  severity: "severe" | "moderate" | "mild" | "none";
 }
 
 interface MonthlyStats {
@@ -38,18 +38,25 @@ export function MonthlyRecap() {
       (m) => m.month === selectedMonth.month && selectedMonth.year === 2025
     );
 
-    if (monthData.length === 0) {
+    // Filter out "none" severity entries for migraine count
+    const actualMigraineData = monthData.filter((m) => m.severity !== "none");
+
+    if (actualMigraineData.length === 0) {
       setStats(null);
       return;
     }
 
-    // Calculate total migraines
-    const totalMigraines = monthData.length;
+    // Calculate total migraines (excluding "none" severity)
+    const totalMigraines = actualMigraineData.length;
 
     // Calculate average intensity (mild=1, moderate=2, severe=3)
-    const severityMap = { mild: 1, moderate: 2, severe: 3 };
-    const totalIntensity = monthData.reduce(
-      (sum, m) => sum + severityMap[m.severity],
+    const intensityMap: Record<string, number> = {
+      mild: 1,
+      moderate: 2,
+      severe: 3,
+    };
+    const totalIntensity = actualMigraineData.reduce(
+      (sum, m) => sum + (intensityMap[m.severity] || 0),
       0
     );
     const averageIntensity = totalIntensity / totalMigraines;

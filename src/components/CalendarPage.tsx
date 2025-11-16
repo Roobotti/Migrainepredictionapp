@@ -12,7 +12,13 @@ import {
   AlertTriangle,
   CheckCircle,
   Pencil,
-  Trash2
+  Trash2,
+  Droplets,
+  Coffee,
+  Wine,
+  Dumbbell,
+  Brain,
+  Activity
 } from "lucide-react";
 import {
   Dialog,
@@ -35,6 +41,13 @@ interface DayData {
   sleep?: string;
   riskLevel?: number;
   hasHealthMetrics?: boolean; // Track if "none" day has health metrics
+  // Additional tracked metrics
+  hydration?: string;
+  caffeine?: string;
+  alcohol?: string;
+  exercise?: string;
+  relaxing?: string;
+  stress?: string;
 }
 
 interface MigraineDayData {
@@ -87,6 +100,23 @@ export function CalendarPage({ onAddMigraineForDate, onEditMigraine }: CalendarP
   const [displayMonth, setDisplayMonth] = useState<Date>(new Date(today.getFullYear(), today.getMonth(), 1));
   const [populationIndex, setPopulationIndex] = useState(0);
   const [refreshKey, setRefreshKey] = useState(0);
+  
+  // Load trackable features from localStorage
+  const [trackableFeatures, setTrackableFeatures] = useState<Record<string, boolean>>(() => {
+    const saved = localStorage.getItem("trackable_features");
+    if (saved) {
+      return JSON.parse(saved);
+    }
+    return {
+      hydration: true,
+      stress: true,
+      caffeine: true,
+      alcohol: true,
+      screenTime: true,
+      exercise: true,
+      relaxing: true
+    };
+  });
 
   // Function to load all migraine data
   const loadMigraineData = () => {
@@ -106,16 +136,29 @@ export function CalendarPage({ onAddMigraineForDate, onEditMigraine }: CalendarP
       if (reports) {
         const parsedReports = JSON.parse(reports);
         const reportDays = parsedReports.map((report: any) => {
-          // Check if any health metrics are entered (including stress which defaults to 5)
+          // Check if any health metrics are entered (not including stress default)
           const hasMetrics = report.hydration !== null || report.caffeine !== null || 
                            report.alcohol !== null || report.exercise !== null || 
-                           report.relaxing !== null || (report.stress !== null && report.stress !== 5);
+                           report.relaxing !== null;
+          
+          // Format the health metrics for display
+          const formatMetric = (value: any, suffix: string) => {
+            return value !== null && value !== undefined ? `${value} ${suffix}` : "-";
+          };
+          
           return {
             date: new Date(report.date),
             hasMigraine: report.severity !== "none",
             severity: report.severity,
             hasHealthMetrics: hasMetrics,
-            // Add sample data for display
+            // Use actual saved data instead of mock data
+            hydration: formatMetric(report.hydration, "dl"),
+            caffeine: formatMetric(report.caffeine, "portions"),
+            alcohol: formatMetric(report.alcohol, "portions"),
+            exercise: formatMetric(report.exercise, "hours"),
+            relaxing: formatMetric(report.relaxing, "hours"),
+            stress: report.stress ? `${report.stress}/10` : "-",
+            // Keep these as mock for now since they're not tracked in AddMigraineReport
             heartRate: "78 bpm",
             steps: "4,500",
             weather: "Normal: 1013 hPa",
@@ -132,8 +175,19 @@ export function CalendarPage({ onAddMigraineForDate, onEditMigraine }: CalendarP
             d => d.date.toDateString() === reportDay.date.toDateString()
           );
           if (existingIndex >= 0) {
-            // Update existing entry
-            allDays[existingIndex] = reportDay;
+            // Merge data - keep existing values if new ones are "-"
+            const existing = allDays[existingIndex];
+            allDays[existingIndex] = {
+              ...existing,
+              ...reportDay,
+              // Preserve existing values if new values are "-"
+              hydration: reportDay.hydration !== "-" ? reportDay.hydration : existing.hydration,
+              caffeine: reportDay.caffeine !== "-" ? reportDay.caffeine : existing.caffeine,
+              alcohol: reportDay.alcohol !== "-" ? reportDay.alcohol : existing.alcohol,
+              exercise: reportDay.exercise !== "-" ? reportDay.exercise : existing.exercise,
+              relaxing: reportDay.relaxing !== "-" ? reportDay.relaxing : existing.relaxing,
+              stress: reportDay.stress !== "-" ? reportDay.stress : existing.stress,
+            };
           } else {
             // Add new entry
             allDays.push(reportDay);
@@ -177,6 +231,7 @@ export function CalendarPage({ onAddMigraineForDate, onEditMigraine }: CalendarP
     // Custom event for when add report sheet closes
     const handleReportAdded = () => {
       setRefreshKey(prev => prev + 1);
+      setSelectedDate(undefined); // Clear selected date when report is added/closed
     };
 
     window.addEventListener('focus', handleFocus);
@@ -204,6 +259,7 @@ export function CalendarPage({ onAddMigraineForDate, onEditMigraine }: CalendarP
       setCurrentScanningDate(null);
       localStorage.setItem("migraine_calendar_data", JSON.stringify(allMigraineData));
       localStorage.setItem("data_populated", "true");
+      localStorage.setItem("info_insight_available", "true");
       return;
     }
 
@@ -324,19 +380,55 @@ export function CalendarPage({ onAddMigraineForDate, onEditMigraine }: CalendarP
 
   const handleEditMigraine = () => {
     if (selectedDate && selectedDayData && onEditMigraine) {
-      // Create a mock data object with the current migraine data
+      // Load the actual saved report data from localStorage
+      const reports = localStorage.getItem("migraine_reports");
+      if (reports) {
+        const parsedReports = JSON.parse(reports);
+        const reportForDate = parsedReports.find((report: any) => {
+          const reportDate = new Date(report.date);
+          return reportDate.toDateString() === selectedDate.toDateString();
+        });
+        
+        if (reportForDate) {
+          // Use the actual saved data
+          const migraineData = {
+            date: selectedDate,
+            severity: reportForDate.severity,
+            symptoms: reportForDate.symptoms || {
+              aura: false,
+              vomiting: false,
+              nausea: false,
+            },
+            hydration: reportForDate.hydration,
+            stress: reportForDate.stress || 5,
+            caffeine: reportForDate.caffeine,
+            alcohol: reportForDate.alcohol,
+            screenTime: reportForDate.screenTime,
+            exercise: reportForDate.exercise,
+            relaxing: reportForDate.relaxing,
+          };
+          setShowDetails(false);
+          onEditMigraine(selectedDate, migraineData);
+          return;
+        }
+      }
+      
+      // Fallback to default data if no saved report found
       const migraineData = {
         date: selectedDate,
-        severity: selectedDayData.severity === "severe" ? 9 : selectedDayData.severity === "moderate" ? 5 : 3,
+        severity: selectedDayData.severity === "severe" ? "severe" : selectedDayData.severity === "moderate" ? "moderate" : "mild",
         symptoms: {
           aura: false,
-          vomiting: selectedDayData.severity === "severe",
-          nausea: selectedDayData.severity !== "mild",
+          vomiting: false,
+          nausea: false,
         },
-        hydration: selectedDayData.severity === "severe" ? 3 : selectedDayData.severity === "moderate" ? 5 : 7,
-        stress: selectedDayData.severity === "severe" ? 8 : selectedDayData.severity === "moderate" ? 6 : 4,
-        caffeine: selectedDayData.severity === "severe" ? 7 : selectedDayData.severity === "moderate" ? 5 : 4,
-        screenTime: selectedDayData.severity === "severe" ? 8 : selectedDayData.severity === "moderate" ? 6 : 5,
+        hydration: null,
+        stress: 5,
+        caffeine: null,
+        alcohol: null,
+        screenTime: null,
+        exercise: null,
+        relaxing: null,
       };
       setShowDetails(false);
       onEditMigraine(selectedDate, migraineData);
@@ -348,7 +440,7 @@ export function CalendarPage({ onAddMigraineForDate, onEditMigraine }: CalendarP
       // Remove migraine from state
       setMigraineDays(prev => prev.filter(day => day.date.toDateString() !== selectedDate.toDateString()));
       
-      // Update localStorage
+      // Update localStorage - remove from calendar data
       const savedData = localStorage.getItem("migraine_calendar_data");
       if (savedData) {
         const parsedData = JSON.parse(savedData) as MigraineDayData[];
@@ -358,8 +450,24 @@ export function CalendarPage({ onAddMigraineForDate, onEditMigraine }: CalendarP
         localStorage.setItem("migraine_calendar_data", JSON.stringify(updatedData));
       }
       
+      // Also remove from migraine_reports if it exists there
+      const reportsData = localStorage.getItem("migraine_reports");
+      if (reportsData) {
+        try {
+          const reports = JSON.parse(reportsData);
+          const updatedReports = reports.filter((report: any) => {
+            const reportDate = new Date(report.date);
+            return reportDate.toDateString() !== selectedDate.toDateString();
+          });
+          localStorage.setItem("migraine_reports", JSON.stringify(updatedReports));
+        } catch (error) {
+          console.error("Error updating migraine reports:", error);
+        }
+      }
+      
       toast.success(`Migraine record removed for ${selectedDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`);
       setShowDetails(false);
+      setSelectedDate(undefined); // Clear selected date so it can be clicked again
     }
   };
 
@@ -390,6 +498,14 @@ export function CalendarPage({ onAddMigraineForDate, onEditMigraine }: CalendarP
           onAddMigraineForDate(date);
         }
       }
+    }
+  };
+
+  // Clear selected date when details dialog closes so it can be clicked again
+  const handleDetailsClose = (open: boolean) => {
+    setShowDetails(open);
+    if (!open) {
+      setSelectedDate(undefined);
     }
   };
 
@@ -517,12 +633,12 @@ export function CalendarPage({ onAddMigraineForDate, onEditMigraine }: CalendarP
                 <div>
                   <div className="text-slate-600">Total Migraines</div>
                   <motion.div 
-                    key={`total-${currentMonthData.length}`}
+                    key={`total-${daysWithMigraine}`}
                     initial={{ scale: 1.2 }}
                     animate={{ scale: 1 }}
                     className="text-xl text-slate-800"
                   >
-                    {currentMonthData.length}
+                    {daysWithMigraine}
                   </motion.div>
                 </div>
               </div>
@@ -600,8 +716,8 @@ export function CalendarPage({ onAddMigraineForDate, onEditMigraine }: CalendarP
       </Card>
 
       {/* Day Details Dialog */}
-      <Dialog open={showDetails} onOpenChange={setShowDetails}>
-        <DialogContent className="max-w-sm" aria-describedby="day-details-description">
+      <Dialog open={showDetails} onOpenChange={handleDetailsClose}>
+        <DialogContent className="max-w-sm max-h-[80vh] flex flex-col">
           <DialogHeader>
             <DialogTitle>
               {selectedDate?.toLocaleDateString('en-US', { 
@@ -610,13 +726,13 @@ export function CalendarPage({ onAddMigraineForDate, onEditMigraine }: CalendarP
                 year: 'numeric'
               })}
             </DialogTitle>
-            <DialogDescription id="day-details-description">
+            <DialogDescription>
               View detailed health metrics and migraine information for this day
             </DialogDescription>
           </DialogHeader>
           
           {selectedDayData && (
-            <div className="space-y-4">
+            <div className="space-y-4 overflow-y-auto pr-2">
               <div className="flex items-center gap-2">
                 <AlertTriangle className="text-red-500" />
                 <span className="text-slate-700">Migraine Recorded</span>
@@ -677,6 +793,67 @@ export function CalendarPage({ onAddMigraineForDate, onEditMigraine }: CalendarP
                     <div className="text-slate-800">{selectedDayData.sleep}</div>
                   </div>
                 </div>
+                
+                {/* Show additional tracked metrics if they have values */}
+                {trackableFeatures.hydration && selectedDayData.hydration && selectedDayData.hydration !== "-" && (
+                  <div className="flex items-center gap-3">
+                    <Droplets className="text-teal-600" size={20} />
+                    <div className="flex-1">
+                      <div className="text-sm text-slate-600">Water Intake</div>
+                      <div className="text-slate-800">{selectedDayData.hydration}</div>
+                    </div>
+                  </div>
+                )}
+                
+                {trackableFeatures.caffeine && selectedDayData.caffeine && selectedDayData.caffeine !== "-" && (
+                  <div className="flex items-center gap-3">
+                    <Coffee className="text-teal-600" size={20} />
+                    <div className="flex-1">
+                      <div className="text-sm text-slate-600">Caffeine</div>
+                      <div className="text-slate-800">{selectedDayData.caffeine}</div>
+                    </div>
+                  </div>
+                )}
+                
+                {trackableFeatures.alcohol && selectedDayData.alcohol && selectedDayData.alcohol !== "-" && (
+                  <div className="flex items-center gap-3">
+                    <Wine className="text-teal-600" size={20} />
+                    <div className="flex-1">
+                      <div className="text-sm text-slate-600">Alcohol</div>
+                      <div className="text-slate-800">{selectedDayData.alcohol}</div>
+                    </div>
+                  </div>
+                )}
+                
+                {trackableFeatures.exercise && selectedDayData.exercise && selectedDayData.exercise !== "-" && (
+                  <div className="flex items-center gap-3">
+                    <Dumbbell className="text-teal-600" size={20} />
+                    <div className="flex-1">
+                      <div className="text-sm text-slate-600">Exercise</div>
+                      <div className="text-slate-800">{selectedDayData.exercise}</div>
+                    </div>
+                  </div>
+                )}
+                
+                {trackableFeatures.relaxing && selectedDayData.relaxing && selectedDayData.relaxing !== "-" && (
+                  <div className="flex items-center gap-3">
+                    <Brain className="text-teal-600" size={20} />
+                    <div className="flex-1">
+                      <div className="text-sm text-slate-600">Relaxing Time</div>
+                      <div className="text-slate-800">{selectedDayData.relaxing}</div>
+                    </div>
+                  </div>
+                )}
+                
+                {trackableFeatures.stress && selectedDayData.stress && selectedDayData.stress !== "-" && (
+                  <div className="flex items-center gap-3">
+                    <Activity className="text-teal-600" size={20} />
+                    <div className="flex-1">
+                      <div className="text-sm text-slate-600">Stress Level</div>
+                      <div className="text-slate-800">{selectedDayData.stress}</div>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="pt-3 border-t">
